@@ -18,6 +18,10 @@ import {
   getWeeklyCheckInCooldownState,
   recordWeeklyCheckInSubmitted,
 } from "./utils/weeklyCheckInCooldown";
+import {
+  loadDashboardSession,
+  saveDashboardSession,
+} from "./utils/dashboardSessionStorage";
 import "./App.css";
 
 const defaultHabits = {
@@ -97,6 +101,20 @@ export default function App() {
       setError(null);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const saved = loadDashboardSession(user.id);
+    if (saved?.result?.footprint) {
+      setResult(saved.result);
+      if (saved.habits) setHabits(saved.habits);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id || !result?.footprint) return;
+    saveDashboardSession(user.id, { result, habits });
+  }, [user?.id, result, habits]);
 
   useEffect(() => {
     if (!user) {
