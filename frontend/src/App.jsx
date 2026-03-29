@@ -7,51 +7,93 @@ import { LandingGate } from "./components/LandingGate";
 import { IMAGES } from "./constants";
 import { Step1Lifestyle } from "./components/Step1Lifestyle";
 import { Step2Score } from "./components/Step2Score";
-import { Step3Offsets } from "./components/Step3Offsets";
 import { Step4Toolkit } from "./components/Step4Toolkit";
+import { StepSocialAi } from "./components/StepSocialAi";
 import { SustainableMarketplace } from "./components/SustainableMarketplace";
 import { UserPortfolioPage } from "./components/portfolio/UserPortfolioPage";
 import { useGamification } from "./hooks/useGamification";
+import { useWeeklyCheckInCooldown } from "./hooks/useWeeklyCheckInCooldown";
+import {
+  formatCooldownRemaining,
+  getWeeklyCheckInCooldownState,
+  recordWeeklyCheckInSubmitted,
+} from "./utils/weeklyCheckInCooldown";
 import "./App.css";
 
 const defaultHabits = {
-  commute: { mode: "car", kmPerDay: 24, daysPerWeek: 5 },
-  flights: { shortHaulPerYear: 1, longHaulPerYear: 0 },
+  commute: { mode: "car", commuteKmThisWeek: 120 },
+  flights: { shortHaulThisWeek: 0, longHaulThisWeek: 0 },
   diet: "average",
   shopping: { level: "medium" },
-  home: { kwhPerMonth: 350 },
+  home: { kwhThisWeek: 85 },
 };
 
+function initialHabitsState() {
+  return {
+    commute: { ...defaultHabits.commute },
+    flights: { ...defaultHabits.flights },
+    diet: defaultHabits.diet,
+    shopping: { ...defaultHabits.shopping },
+    home: { ...defaultHabits.home },
+  };
+}
+
 const STEPS = [
-  { n: 1, label: "Lifestyle" },
+  { n: 1, label: "Weekly check-in" },
   { n: 2, label: "Carbon score" },
   { n: 3, label: "Sustainable Marketplace" },
-  { n: 4, label: "Offsets" },
-  { n: 5, label: "Toolkit" },
+  { n: 4, label: "Toolkit" },
+  { n: 5, label: "Social & AI+" },
   { n: 6, label: "Progress" },
 ];
+
+function WizardScorePlaceholder({ onGoCheckIn }) {
+  return (
+    <motion.section
+      className="step-panel step-panel--2"
+      initial={{ opacity: 0, x: 24 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="glass-card dashboard-card">
+        <h2 className="step-form__title">Your carbon score</h2>
+        <p className="step-form__lead">
+          Run the weekly check-in to calculate your footprint and see benchmarks here. You can open
+          any step anytime from the bar above.
+        </p>
+        <div className="step-actions">
+          <button type="button" className="btn-cta" onClick={onGoCheckIn}>
+            Go to weekly check-in
+          </button>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
 
 export default function App() {
   const { user, loading: authLoading, syncFootprintToLeaderboard } = useAuth();
   const [authModal, setAuthModal] = useState({ open: false, mode: "login" });
   const [step, setStep] = useState(1);
-  const [habits, setHabits] = useState(defaultHabits);
+  const [habits, setHabits] = useState(initialHabitsState);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
-  const [selectedOffsetId, setSelectedOffsetId] = useState(null);
+  const [weeklyCooldownRefresh, setWeeklyCooldownRefresh] = useState(0);
   const gamify = useGamification(result?.footprint ?? null, {
-    selectedOffsetId,
+    selectedOffsetId: null,
     step,
     userId: user?.id,
     serverGamification: user?.gamification,
   });
 
+  const weeklyCooldown = useWeeklyCheckInCooldown(user?.id, weeklyCooldownRefresh);
+
   useEffect(() => {
     if (!user) {
       setStep(1);
       setResult(null);
-      setSelectedOffsetId(null);
       setError(null);
     }
   }, [user]);
@@ -64,9 +106,11 @@ export default function App() {
     document.title =
       step === 3
         ? "Sustainable marketplace — CUTthecarbon"
-        : step === 6
-          ? "Your progress — CUTthecarbon"
-          : "CUTthecarbon";
+        : step === 5
+          ? "Social & AI — CUTthecarbon"
+          : step === 6
+            ? "Your progress — CUTthecarbon"
+            : "CUTthecarbon";
   }, [user, step]);
 
   useEffect(() => {
@@ -77,10 +121,19 @@ export default function App() {
   async function handleCalculate(e) {
     e.preventDefault();
     setError(null);
+    const cd = getWeeklyCheckInCooldownState(user?.id);
+    if (cd.blocked) {
+      setError(
+        `Weekly check-in is on cooldown. Try again in ${formatCooldownRemaining(cd.msRemaining)} ` +
+          `(next after ${cd.nextAllowedAt?.toLocaleString?.() ?? "—"}).`
+      );
+      return;
+    }
     setLoading(true);
-    setSelectedOffsetId(null);
     try {
       const data = await postDashboard(habits);
+      recordWeeklyCheckInSubmitted(user?.id);
+      setWeeklyCooldownRefresh((n) => n + 1);
       setResult(data);
       setStep(2);
     } catch (err) {
@@ -164,15 +217,7 @@ export default function App() {
                 key={s.n}
                 type="button"
                 className={`stepper__item ${step === s.n ? "stepper__item--active" : ""} ${step > s.n ? "stepper__item--done" : ""}`}
-                onClick={() => {
-                  if (s.n === 1) setStep(1);
-                  if (s.n === 2 && result) setStep(2);
-                  if (s.n === 3 && result) setStep(3);
-                  if (s.n === 4 && result) setStep(4);
-                  if (s.n === 5 && result) setStep(5);
-                  if (s.n === 6) setStep(6);
-                }}
-                disabled={s.n !== 1 && s.n !== 6 && !result}
+                onClick={() => setStep(s.n)}
               >
                 <span className="stepper__num">{s.n}</span>
                 <span className="stepper__label">{s.label}</span>
@@ -198,46 +243,50 @@ export default function App() {
                   onSubmit={handleCalculate}
                   loading={loading}
                   error={error}
+                  weeklyCooldown={weeklyCooldown}
                 />
               )}
-              {step === 2 && result?.footprint && (
-                <Step2Score
-                  key="s2"
-                  footprint={result.footprint}
-                  gamify={gamify}
-                  onNext={() => setStep(3)}
-                  onBack={() => setStep(1)}
-                  onOpenToolkit={() => setStep(5)}
-                  onOpenPortfolio={() => setStep(6)}
-                />
-              )}
-              {step === 3 && result && (
+              {step === 2 &&
+                (result?.footprint ? (
+                  <Step2Score
+                    key="s2"
+                    footprint={result.footprint}
+                    gamify={gamify}
+                    habits={habits}
+                    userDisplayName={
+                      user?.displayName || user?.name || user?.email?.split("@")[0] || "Guest"
+                    }
+                    onNext={() => setStep(3)}
+                    onBack={() => setStep(1)}
+                    onOpenToolkit={() => setStep(4)}
+                    onOpenPortfolio={() => setStep(6)}
+                  />
+                ) : (
+                  <WizardScorePlaceholder key="s2-placeholder" onGoCheckIn={() => setStep(1)} />
+                ))}
+              {step === 3 && (
                 <SustainableMarketplace
                   key="s3-marketplace"
                   onBack={() => setStep(2)}
-                  onNextOffsets={() => setStep(4)}
+                  onContinue={() => setStep(4)}
                 />
               )}
-              {step === 4 && result && (
-                <Step3Offsets
-                  key="s4-offsets"
-                  offsetsRanked={result.offsetsRanked}
-                  ai={result.ai}
-                  aiEnabled={result.aiEnabled}
-                  selectedId={selectedOffsetId}
-                  onSelect={setSelectedOffsetId}
-                  onBack={() => setStep(3)}
-                  onNextToolkit={() => setStep(5)}
-                  footprint={result.footprint}
-                />
-              )}
-              {step === 5 && result?.footprint && (
+              {step === 4 && (
                 <Step4Toolkit
-                  key="s5-toolkit"
+                  key="s4-toolkit"
                   habits={habits}
-                  footprint={result.footprint}
-                  result={result}
+                  footprint={result?.footprint}
                   gamify={gamify}
+                  onBack={() => setStep(3)}
+                  onOpenPortfolio={() => setStep(6)}
+                />
+              )}
+              {step === 5 && user && (
+                <StepSocialAi
+                  key="s5-social"
+                  habits={habits}
+                  gamify={gamify}
+                  user={user}
                   onBack={() => setStep(4)}
                   onOpenPortfolio={() => setStep(6)}
                 />

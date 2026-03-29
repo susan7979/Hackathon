@@ -1,19 +1,38 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { formatTonnesFromKg, UNIT_T_CO2E_YR } from "../utils/formatEmissions";
+import { formatTonnesFromKg, UNIT_T_CO2E_WK } from "../utils/formatEmissions";
 
 const R = 52;
 const C = 2 * Math.PI * R;
 const SIZE = 140;
 
-const DEFAULT_GLOBAL_KG = 4700;
+const DEFAULT_GLOBAL_ANNUAL_KG = 4700;
 
 /**
- * Animated ring: fill reflects footprint intensity vs 2× global average (capped).
+ * Ring fill vs ~2× benchmark weekly intensity (capped).
+ * @param {number} [props.valueKg] — weekly kg CO₂e (preferred)
+ * @param {number} [props.annualKg] — legacy: annual kg (if valueKg omitted)
+ * @param {number} [props.benchmarkAnnualKg] — global annual reference (default 4700)
  */
-export function RingGauge({ annualKg, globalAverageKg, className = "" }) {
+export function RingGauge({
+  valueKg,
+  annualKg,
+  globalAverageKg,
+  benchmarkAnnualKg,
+  unitLabel,
+  className = "",
+}) {
   const reduce = useReducedMotion();
-  const cap = Math.max((globalAverageKg || DEFAULT_GLOBAL_KG) * 2, annualKg || 1);
-  const progress = Math.min(1, (annualKg || 0) / cap);
+  const weeklyKg =
+    valueKg != null
+      ? Number(valueKg)
+      : annualKg != null
+        ? Number(annualKg) / 52
+        : 0;
+  const globalAnnual = globalAverageKg ?? benchmarkAnnualKg ?? DEFAULT_GLOBAL_ANNUAL_KG;
+  const weeklyRef = globalAnnual / 52;
+  const cap = Math.max(weeklyRef * 2, weeklyKg || 1);
+  const progress = Math.min(1, (weeklyKg || 0) / cap);
+  const label = unitLabel || UNIT_T_CO2E_WK;
 
   return (
     <div className={`ring-gauge ${className}`}>
@@ -50,14 +69,14 @@ export function RingGauge({ annualKg, globalAverageKg, className = "" }) {
       <div className="ring-gauge__center">
         <motion.span
           className="ring-gauge__value"
-          key={annualKg}
+          key={weeklyKg}
           initial={reduce ? false : { opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45 }}
         >
-          {formatTonnesFromKg(annualKg ?? 0, 2)}
+          {formatTonnesFromKg(weeklyKg ?? 0, 2)}
         </motion.span>
-        <span className="ring-gauge__unit">{UNIT_T_CO2E_YR}</span>
+        <span className="ring-gauge__unit">{label}</span>
       </div>
     </div>
   );

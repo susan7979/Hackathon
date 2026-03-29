@@ -23,3 +23,9 @@ export const UNIT_T_CO2E_YR = "t CO₂e / yr";
 
 /** Longer label when “metric tonnes” is clearer */
 export const UNIT_METRIC_TONNES_YR = "metric tonnes CO₂e / yr";
+
+/** Weekly carbon total */
+export const UNIT_METRIC_TONNES_WK = "metric tonnes CO₂e / week";
+
+/** Short weekly label for compact UI (ring gauge; /W = per week) */
+export const UNIT_T_CO2E_WK = "t CO₂e/W";

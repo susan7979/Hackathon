@@ -15,31 +15,49 @@ function loadSeeds() {
   }
 }
 
-/** GET — optional JWT to mark "you" and return yourRank */
+/** GET — optional JWT; ?mode=weekly|projected|xp|improved */
 exports.getLeaderboard = (req, res) => {
+  const mode = String(req.query.mode || "weekly").toLowerCase();
+
   const seeds = loadSeeds().map((s) => ({
     id: s.id,
     name: s.name,
     annualKg: s.annualKg,
+    weeklyKg: s.annualKg != null ? Math.round(s.annualKg / 52) : null,
+    weekVsPriorPercent: null,
     totalXp: s.totalXp != null ? s.totalXp : 0,
     avatar: s.avatar,
     isYou: false,
   }));
 
-  const users = userStore
-    .getPublicUsers()
-    .filter((u) => u.annualKgCO2e != null && !Number.isNaN(u.annualKgCO2e))
-    .map((u) => ({
-      id: u.id,
-      name: u.displayName,
-      annualKg: u.annualKgCO2e,
-      totalXp: u.totalXp != null ? u.totalXp : 0,
-      level: u.level != null ? u.level : levelFromTotalXp(u.totalXp || 0),
-      avatar: "⭐",
-      isYou: Boolean(req.user && req.user.sub === u.id),
-    }));
+  const users = userStore.getPublicUsers().map((u) => ({
+    id: u.id,
+    name: u.displayName,
+    annualKg: u.annualKgCO2e,
+    weeklyKg: u.weeklyKgCO2e != null ? u.weeklyKgCO2e : u.annualKgCO2e != null ? Math.round(u.annualKgCO2e / 52) : null,
+    weekVsPriorPercent: u.weekVsPriorPercent,
+    totalXp: u.totalXp != null ? u.totalXp : 0,
+    level: u.level != null ? u.level : levelFromTotalXp(u.totalXp || 0),
+    avatar: "⭐",
+    isYou: Boolean(req.user && req.user.sub === u.id),
+  }));
 
-  const entries = [...seeds, ...users].sort((a, b) => a.annualKg - b.annualKg);
+  const withFootprint = users.filter((u) => u.weeklyKg != null && !Number.isNaN(u.weeklyKg));
+  const withProjected = users.filter((u) => u.annualKg != null && !Number.isNaN(u.annualKg));
+
+  let entries = [...seeds, ...users];
+  if (mode === "weekly") {
+    entries = [...seeds.filter((s) => s.weeklyKg != null), ...withFootprint].sort(
+      (a, b) => (a.weeklyKg || 999999) - (b.weeklyKg || 999999)
+    );
+  } else if (mode === "projected") {
+    entries = [...seeds, ...withProjected].sort((a, b) => (a.annualKg || 999999) - (b.annualKg || 999999));
+  } else if (mode === "improved") {
+    const imp = [...seeds, ...users].filter((e) => e.weekVsPriorPercent != null && e.weekVsPriorPercent < 0);
+    entries = imp.sort((a, b) => (a.weekVsPriorPercent || 0) - (b.weekVsPriorPercent || 0));
+  } else {
+    entries = [...entries].sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
+  }
 
   if (req.user) {
     entries.forEach((e) => {
@@ -47,22 +65,42 @@ exports.getLeaderboard = (req, res) => {
     });
   }
 
-  let yourRank = null;
-  if (req.user) {
-    const idx = entries.findIndex((e) => e.id === req.user.sub);
-    yourRank = idx === -1 ? null : idx + 1;
+  function rankIn(list) {
+    if (!req.user) return null;
+    const ix = list.findIndex((e) => e.id === req.user.sub);
+    return ix === -1 ? null : ix + 1;
   }
 
-  const byXp = [...entries].sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
-  let yourRankXp = null;
-  if (req.user) {
-    const ix = byXp.findIndex((e) => e.id === req.user.sub);
-    yourRankXp = ix === -1 ? null : ix + 1;
-  }
+  const byXpSorted = [...users, ...seeds].sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
+  const weeklySorted = [...seeds.filter((s) => s.weeklyKg != null), ...withFootprint].sort(
+    (a, b) => (a.weeklyKg || 999999) - (b.weeklyKg || 999999)
+  );
+  const projectedSorted = [...seeds, ...withProjected].sort(
+    (a, b) => (a.annualKg || 999999) - (b.annualKg || 999999)
+  );
+  const improvedSorted = [...seeds, ...users]
+    .filter((e) => e.weekVsPriorPercent != null && e.weekVsPriorPercent < 0)
+    .sort((a, b) => (a.weekVsPriorPercent || 0) - (b.weekVsPriorPercent || 0));
+
+  const yourRankWeekly = rankIn(weeklySorted);
+  const yourRankProjected = rankIn(projectedSorted);
+  const yourRankImproved = rankIn(improvedSorted);
+  const yourRankXp = rankIn(byXpSorted);
 
   res.json({
+    mode,
     entries,
-    yourRank,
+    yourRank:
+      mode === "weekly"
+        ? yourRankWeekly
+        : mode === "projected"
+          ? yourRankProjected
+          : mode === "improved"
+            ? yourRankImproved
+            : yourRankXp,
+    yourRankWeekly,
+    yourRankProjected,
+    yourRankImproved,
     yourRankXp,
     yourId: req.user ? req.user.sub : null,
     total: entries.length,

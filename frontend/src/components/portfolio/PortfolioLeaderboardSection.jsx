@@ -1,28 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getLeaderboard } from "../../api";
 import { MOCK_LEADERBOARD } from "../../data/hubContent";
-import { formatTonnesFromKg, UNIT_T_CO2E_YR } from "../../utils/formatEmissions";
+import { formatTonnesFromKg, UNIT_METRIC_TONNES_WK, UNIT_METRIC_TONNES_YR } from "../../utils/formatEmissions";
 import { levelFromTotalXp, getLevelTitle } from "../../utils/xpLevel";
 import { generateLeaderboard } from "../../utils/portfolioBusinessLogic";
 
 /**
- * Segmented leaderboard: lowest CO₂e vs highest level/XP. Data from API with mock fallback.
+ * Leaderboards: weekly footprint, projected annual, most improved, XP.
  */
 export function PortfolioLeaderboardSection({ user, footprintKg, totalXp }) {
   const [lb, setLb] = useState(null);
   const [err, setErr] = useState(null);
-  const [mode, setMode] = useState("co2");
+  const [mode, setMode] = useState("weekly");
 
   const load = useCallback(async () => {
     try {
       setErr(null);
-      const data = await getLeaderboard();
+      const data = await getLeaderboard(mode);
       setLb(data);
     } catch (e) {
       setErr(e.message);
       setLb(null);
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     load();
@@ -43,6 +43,8 @@ export function PortfolioLeaderboardSection({ user, footprintKg, totalXp }) {
               id: "you",
               name: user?.displayName || user?.name || "You",
               annualKg: footprintKg ?? 0,
+              weeklyKg: footprintKg != null ? Math.round(footprintKg / 52) : 0,
+              weekVsPriorPercent: null,
               totalXp: totalXp ?? 0,
               avatar: "◆",
             },
@@ -50,11 +52,19 @@ export function PortfolioLeaderboardSection({ user, footprintKg, totalXp }) {
     const normalized = base.map((r) => ({
       ...r,
       totalXp: r.totalXp != null ? r.totalXp : 0,
+      weeklyKg: r.weeklyKg != null ? r.weeklyKg : r.annualKg != null ? Math.round(r.annualKg / 52) : null,
     }));
     return generateLeaderboard(normalized, mode);
   }, [lb?.entries, footprintKg, totalXp, mode, user?.displayName, user?.name]);
 
-  const yourRank = mode === "co2" ? lb?.yourRank : lb?.yourRankXp ?? null;
+  const yourRank =
+    mode === "weekly"
+      ? lb?.yourRankWeekly
+      : mode === "projected"
+        ? lb?.yourRankProjected
+        : mode === "improved"
+          ? lb?.yourRankImproved
+          : lb?.yourRankXp;
 
   return (
     <section className="portfolio-card">
@@ -62,19 +72,38 @@ export function PortfolioLeaderboardSection({ user, footprintKg, totalXp }) {
         <div>
           <h3 className="portfolio-card__title">Leaderboards</h3>
           <p className="portfolio-card__sub">
-            Compare lowest annual footprint or highest XP. Live data syncs when you’re signed in.
+            Weekly footprint, projected yearly, most improved vs last week, or XP — live when you’re
+            signed in.
           </p>
         </div>
       </div>
-      <div className="portfolio-lb-toggle" role="tablist" aria-label="Leaderboard mode">
+      <div className="portfolio-lb-toggle portfolio-lb-toggle--four" role="tablist" aria-label="Leaderboard mode">
         <button
           type="button"
           role="tab"
-          aria-selected={mode === "co2"}
-          className={`portfolio-lb-toggle__btn ${mode === "co2" ? "portfolio-lb-toggle__btn--on" : ""}`}
-          onClick={() => setMode("co2")}
+          aria-selected={mode === "weekly"}
+          className={`portfolio-lb-toggle__btn ${mode === "weekly" ? "portfolio-lb-toggle__btn--on" : ""}`}
+          onClick={() => setMode("weekly")}
         >
-          CO₂ footprint
+          Weekly CO₂
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "projected"}
+          className={`portfolio-lb-toggle__btn ${mode === "projected" ? "portfolio-lb-toggle__btn--on" : ""}`}
+          onClick={() => setMode("projected")}
+        >
+          Projected yr
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "improved"}
+          className={`portfolio-lb-toggle__btn ${mode === "improved" ? "portfolio-lb-toggle__btn--on" : ""}`}
+          onClick={() => setMode("improved")}
+        >
+          Most improved
         </button>
         <button
           type="button"
@@ -100,10 +129,16 @@ export function PortfolioLeaderboardSection({ user, footprintKg, totalXp }) {
               <span aria-hidden>{row.avatar || "·"}</span>
               <span className="portfolio-lb-row__name">{row.name}</span>
               <span className="portfolio-lb-row__val">
-                {mode === "co2" ? (
+                {mode === "weekly" ? (
                   <>
-                    {formatTonnesFromKg(row.annualKg, 2)} {UNIT_T_CO2E_YR}
+                    {formatTonnesFromKg(row.weeklyKg ?? 0, 2)} {UNIT_METRIC_TONNES_WK}
                   </>
+                ) : mode === "projected" ? (
+                  <>
+                    {formatTonnesFromKg(row.annualKg ?? 0, 2)} {UNIT_METRIC_TONNES_YR}
+                  </>
+                ) : mode === "improved" ? (
+                  <>{row.weekVsPriorPercent != null ? `${row.weekVsPriorPercent}%` : "—"} vs prior</>
                 ) : (
                   <>
                     Lv {lvl} · {getLevelTitle(lvl)} · {Math.round(row.totalXp || 0)} XP
@@ -116,12 +151,12 @@ export function PortfolioLeaderboardSection({ user, footprintKg, totalXp }) {
       </ol>
       {user && yourRank != null && (
         <p className="portfolio-card__sub" style={{ marginTop: "0.65rem" }}>
-          Your rank ({mode === "co2" ? "footprint" : "XP"}): #{yourRank} of {rows.length}
+          Your rank ({mode}): #{yourRank} of {rows.length}
         </p>
       )}
       {user && yourRank == null && (
         <p className="portfolio-card__sub" style={{ marginTop: "0.65rem" }}>
-          Run the calculator while signed in to post your footprint and appear on the live board.
+          Submit a weekly check-in while signed in to appear on the live boards.
         </p>
       )}
       {!user && (

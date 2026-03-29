@@ -15,6 +15,9 @@ import { submitGamificationState } from "../api";
 const LEGACY_KEY = "cfn-gamify-v2";
 const ANON_KEY = "cfn-gamify-v2-anon";
 
+/** Flat XP awarded each time the user posts a carbon pledge in the hub (not from achievement stars). */
+export const XP_PER_PLEDGE_POST = 40;
+
 /** Per-user localStorage so multiple accounts on one browser do not share XP/badges. */
 export function getGamifyStorageKey(userId) {
   if (userId != null && userId !== "") return `cfn-gamify-v2-u-${String(userId)}`;
@@ -64,6 +67,9 @@ function migrate(raw) {
   if (!out.weeklySlots) out.weeklySlots = {};
   if (!out.weeklyDone) out.weeklyDone = {};
   if (out.pledgeCount == null) out.pledgeCount = 0;
+  if (out.pledgeBonusXp == null || Number.isNaN(Number(out.pledgeBonusXp))) out.pledgeBonusXp = 0;
+  if (out.weeklyActivityXp == null || Number.isNaN(Number(out.weeklyActivityXp))) out.weeklyActivityXp = 0;
+  if (out.lastAwardedWeekKey == null) out.lastAwardedWeekKey = null;
   if (out.marketplaceVisits == null) out.marketplaceVisits = 0;
   if (out.maxStreak == null) out.maxStreak = 0;
   if (Array.isArray(raw.badges)) {
@@ -90,6 +96,9 @@ function saveToKey(key, data) {
   const { completedChallenges: _c, ...persist } = data;
   localStorage.setItem(key, JSON.stringify(persist));
 }
+
+const XP_WEEKLY_SUBMIT = 20;
+const XP_WEEKLY_IMPROVED = 15;
 
 function sumWeeklyClaims(xpWeeklyClaims) {
   if (!xpWeeklyClaims || typeof xpWeeklyClaims !== "object") return 0;
@@ -132,6 +141,7 @@ export function useGamification(footprint, options = {}) {
   const [weekTicker, setWeekTicker] = useState(() => isoWeekKey());
   const xpSyncRef = useRef(null);
   const prevStepRef = useRef(null);
+  const weeklyXpAwardedRef = useRef(null);
 
   const streak = state.streak || 0;
   const streakMult = streakXpMultiplier(streak);
@@ -178,6 +188,30 @@ export function useGamification(footprint, options = {}) {
       return next === prev ? prev : next;
     });
   }, [weekTicker]);
+
+  useEffect(() => {
+    const wk = footprint?.weekKey;
+    if (!wk) return;
+    if (weeklyXpAwardedRef.current === wk) return;
+    setState((prev) => {
+      if (prev.lastAwardedWeekKey === wk) {
+        weeklyXpAwardedRef.current = wk;
+        return prev;
+      }
+      let add = XP_WEEKLY_SUBMIT;
+      if (footprint.changeFromLastWeek?.improved) add += XP_WEEKLY_IMPROVED;
+      const st = footprint.streak?.currentWeeklyStreak || 0;
+      if (st >= 2) add += Math.min(25, st * 2);
+      weeklyXpAwardedRef.current = wk;
+      const next = {
+        ...prev,
+        weeklyActivityXp: (prev.weeklyActivityXp || 0) + add,
+        lastAwardedWeekKey: wk,
+      };
+      saveToKey(getGamifyStorageKey(userIdRef.current), next);
+      return next;
+    });
+  }, [footprint?.weekKey, footprint?.changeFromLastWeek?.improved, footprint?.streak?.currentWeeklyStreak]);
 
   useEffect(() => {
     if (step === 3 && prevStepRef.current !== 3) {
@@ -278,7 +312,9 @@ export function useGamification(footprint, options = {}) {
   );
 
   const challengeXp = challengeXpVal;
-  const totalXp = achievementXp + challengeXp;
+  const pledgeBonusXp = Math.max(0, Number(state.pledgeBonusXp) || 0);
+  const weeklyActivityXp = Math.max(0, Number(state.weeklyActivityXp) || 0);
+  const totalXp = achievementXp + challengeXp + pledgeBonusXp + weeklyActivityXp;
   const level = levelFromTotalXp(totalXp);
 
   const weeklyChallengeRows = useMemo(() => {
@@ -415,6 +451,7 @@ export function useGamification(footprint, options = {}) {
       const next = {
         ...prev,
         pledgeCount: (prev.pledgeCount || 0) + 1,
+        pledgeBonusXp: (Number(prev.pledgeBonusXp) || 0) + XP_PER_PLEDGE_POST,
         collectiveDemoKg: (prev.collectiveDemoKg || 12400) + kg,
         badges: [...new Set([...(prev.badges || []), "pledge"])],
       };

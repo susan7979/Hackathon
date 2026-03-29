@@ -62,7 +62,11 @@ export const ACHIEVEMENT_DEFS = [
     title: "Hub explorer",
     category: "Exploration",
     icon: "⌖",
-    starDesc: ["Open the Impact Hub once", "Visit 2+ toolkit sections", "Visit all 4 toolkit tabs"],
+    starDesc: [
+      "Open the carbon toolkit once",
+      "Visit both toolkit sections",
+      "Visit both Predict & Social (full exploration)",
+    ],
     starXp: [40, 100, 230],
   },
   {
@@ -307,7 +311,8 @@ export function evaluateAchievementStars(ctx) {
 
   stars.pledge = pledges >= 6 ? 3 : pledges >= 3 ? 2 : pledges >= 1 ? 1 : 0;
 
-  stars.hub_nomad = hubTabs >= 4 ? 3 : hubTabs >= 2 ? 2 : hubTabs >= 1 ? 1 : 0;
+  /* Toolkit: Predict + Social (2 tabs). 1★ first visit; 3★ after both sections. */
+  stars.hub_nomad = hubTabs >= 2 ? 3 : hubTabs >= 1 ? 1 : 0;
 
   stars.marketplace = mp >= 8 ? 3 : mp >= 3 ? 2 : mp >= 1 ? 1 : 0;
 

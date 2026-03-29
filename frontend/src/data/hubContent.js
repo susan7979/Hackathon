@@ -40,21 +40,30 @@ export const ACHIEVEMENTS = [];
 export const LOCAL_INITIATIVES = [
   {
     title: "Community tree planting weekend",
+    shortTitle: "Tree planting weekend",
     type: "Trees",
     area: "Near you (demo)",
     url: "https://www.arborday.org",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Bialowieza_wrzos1.jpg/480px-Bialowieza_wrzos1.jpg",
   },
   {
     title: "Utility green power program",
+    shortTitle: "Utility green power",
     type: "Clean energy",
     area: "Check your utility website",
     url: "https://www.energy.gov",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Photovoltaic_system_germany_2007.jpg/480px-Photovoltaic_system_germany_2007.jpg",
   },
   {
     title: "Farmers market / low-packaging shops",
+    shortTitle: "Farmers market swaps",
     type: "Sustainable shopping",
     area: "Local listings",
     url: "https://www.usda.gov/farmersmarket",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tomatoes_on_vine.jpg/440px-Tomatoes_on_vine.jpg",
   },
 ];
 
@@ -76,11 +85,11 @@ export const MOCK_FRIENDS = [
   { name: "Jamie", annualKg: 9500 },
 ];
 
-/** Preset “optimized” lifestyle for scenario comparison */
+/** Preset “optimized” lifestyle — same weekly field shape as check-in / calculateWeeklyFootprint */
 export const OPTIMIZED_SCENARIO_HABITS = {
-  commute: { mode: "transit", kmPerDay: 12, daysPerWeek: 5 },
-  flights: { shortHaulPerYear: 0, longHaulPerYear: 0 },
+  commute: { mode: "transit", commuteKmThisWeek: 60 },
+  flights: { shortHaulThisWeek: 0, longHaulThisWeek: 0 },
   diet: "vegetarian",
   shopping: { level: "low" },
-  home: { kwhPerMonth: 220 },
+  home: { kwhThisWeek: Math.round((220 * 12) / 52) },
 };

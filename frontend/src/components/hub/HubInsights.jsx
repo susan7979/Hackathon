@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { getFactors, postCalculate } from "../../api";
+import { getFactors, normalizeWeeklyCheckInHabits, postCalculate } from "../../api";
 import {
   OFFSET_MARKETPLACES,
   OPTIMIZED_SCENARIO_HABITS,
@@ -29,7 +29,7 @@ export function HubInsights({ habits, footprint, result }) {
   }, []);
 
   useEffect(() => {
-    postCalculate(OPTIMIZED_SCENARIO_HABITS)
+    postCalculate(normalizeWeeklyCheckInHabits(OPTIMIZED_SCENARIO_HABITS))
       .then((r) => setOptKg(r.annualKgCO2e))
       .catch(() => setOptKg(null));
   }, []);

@@ -1,0 +1,113 @@
+[
+  {
+    "id": "b1cd9827-359c-46ba-9d6b-4d7908e70a1f",
+    "userId": "8370ee30-78c0-4b73-82bb-6d1c26aad9b8",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "bike",
+      "commuteKmThisWeek": 800
+    },
+    "energyInput": {
+      "kwhThisWeek": 85
+    },
+    "foodInput": "average",
+    "shoppingInput": {
+      "level": "medium"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 0,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 107,
+    "weeklySustainabilityScore": 59,
+    "projectedYearlyFootprint": 5556,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 118.2,
+      "yourPercentOfUsAverage": 37.3,
+      "relativeToUs": "below_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T17:33:44.891Z",
+    "updatedAt": "2026-03-29T18:32:38.500Z"
+  },
+  {
+    "id": "2e8f2584-0e18-4fa3-a9d5-d1e12e0b1432",
+    "userId": "bc1c91c1-9bb8-4da7-8f8b-0709f696c2f1",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "car",
+      "commuteKmThisWeek": 120
+    },
+    "energyInput": {
+      "kwhThisWeek": 30
+    },
+    "foodInput": "meat_heavy",
+    "shoppingInput": {
+      "level": "low"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 1,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 367,
+    "weeklySustainabilityScore": 0,
+    "projectedYearlyFootprint": 19066,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 405.7,
+      "yourPercentOfUsAverage": 128,
+      "relativeToUs": "above_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T18:32:56.144Z",
+    "updatedAt": "2026-03-29T18:47:33.105Z"
+  },
+  {
+    "id": "5a6b89e1-83e1-4459-b545-8d5dcb8ed070",
+    "userId": "faf9fd55-47b8-47f5-bd83-8966214e669b",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "hybrid_ev",
+      "commuteKmThisWeek": 65
+    },
+    "energyInput": {
+      "kwhThisWeek": 40
+    },
+    "foodInput": "vegetarian",
+    "shoppingInput": {
+      "level": "high"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 1,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 353,
+    "weeklySustainabilityScore": 0,
+    "projectedYearlyFootprint": 18344,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 390.3,
+      "yourPercentOfUsAverage": 123.1,
+      "relativeToUs": "above_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T19:01:10.820Z",
+    "updatedAt": "2026-03-29T19:01:10.820Z"
+  }
+]

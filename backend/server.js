@@ -16,10 +16,12 @@ app.get("/health", (_req, res) => {
 const footprintRoutes = require("./routes/footprint");
 const authRoutes = require("./routes/auth");
 const leaderboardRoutes = require("./routes/leaderboard");
+const pledgesRoutes = require("./routes/pledges");
 
 app.use("/api/footprint", footprintRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/pledges", pledgesRoutes);
 
 app.get("/api", (_req, res) => {
   res.json({
@@ -33,10 +35,13 @@ app.get("/api", (_req, res) => {
       leaderboardSubmit: "POST /api/leaderboard/submit",
       calculate: "POST /api/footprint/calculate",
       recommendations: "POST /api/footprint/recommendations",
-      dashboard: "POST /api/footprint/dashboard",
+      dashboard: "POST /api/footprint/dashboard (optional Bearer — saves weekly record)",
+      weeklyHistory: "GET /api/footprint/weekly/history (auth)",
       offsetsCatalog: "GET /api/footprint/offsets",
       factors: "GET /api/footprint/factors",
       coach: "POST /api/footprint/coach",
+      pledges: "GET /api/pledges | POST /api/pledges (auth)",
+      carbonScorePdf: "POST /api/footprint/report/pdf — PDF report (requires puppeteer)",
     },
   });
 });
@@ -53,4 +58,5 @@ app.listen(PORT, () => {
   }
   console.log("  POST /api/auth/register | login   GET /api/auth/me");
   console.log("  GET /api/leaderboard   POST /api/leaderboard/submit (auth)");
+  console.log("  GET /api/pledges   POST /api/pledges (auth)");
 });

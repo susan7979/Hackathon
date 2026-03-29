@@ -72,14 +72,20 @@ export function replaceCompletedChallengePool(weekKey, excludeIds, pool = WEEKLY
 }
 
 /**
- * @typedef {'co2' | 'xp'} LeaderboardMode
- * @param {Array<{ id: string, name: string, annualKg?: number, totalXp?: number, isYou?: boolean }>} users
+ * @typedef {'co2' | 'weekly' | 'projected' | 'improved' | 'xp'} LeaderboardMode
+ * @param {Array<{ id: string, name: string, annualKg?: number, weeklyKg?: number, weekVsPriorPercent?: number, totalXp?: number, isYou?: boolean }>} users
  * @param {LeaderboardMode} mode
  */
 export function generateLeaderboard(users, mode) {
   const list = (users || []).map((u) => ({ ...u }));
-  if (mode === "co2") {
+  if (mode === "co2" || mode === "weekly") {
+    list.sort(
+      (a, b) => (a.weeklyKg ?? a.annualKg ?? 1e12) - (b.weeklyKg ?? b.annualKg ?? 1e12)
+    );
+  } else if (mode === "projected") {
     list.sort((a, b) => (a.annualKg ?? 1e12) - (b.annualKg ?? 1e12));
+  } else if (mode === "improved") {
+    list.sort((a, b) => (a.weekVsPriorPercent ?? 0) - (b.weekVsPriorPercent ?? 0));
   } else {
     list.sort((a, b) => {
       const lx = levelFromTotalXp(b.totalXp ?? 0) - levelFromTotalXp(a.totalXp ?? 0);

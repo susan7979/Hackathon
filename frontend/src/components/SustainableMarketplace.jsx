@@ -5,7 +5,7 @@ import {
   MARKETPLACE_IMAGE_FALLBACK,
 } from "../data/sustainableMarketplace";
 
-export function SustainableMarketplace({ onBack, onNextOffsets }) {
+export function SustainableMarketplace({ onBack, onContinue }) {
   const [broken, setBroken] = useState({});
 
   return (
@@ -19,19 +19,17 @@ export function SustainableMarketplace({ onBack, onNextOffsets }) {
       <div className="glass-card negotiator-card marketplace-page">
         <h2 className="step-form__title">Sustainable marketplace</h2>
         <p className="step-form__lead">
-          Curated shops and climate partners — click a card to open the site in a new tab, then continue
-          to negotiate carbon offsets.
+          Curated shops and climate partners — use <strong>Shop more</strong> on each card to open the
+          site in a new tab, then continue to the toolkit.
         </p>
 
         <div className="offset-grid marketplace-grid--3x5">
           {MARKETPLACE_ALL_BRANDS.map((b, i) => {
             const img = broken[b.id] ? MARKETPLACE_IMAGE_FALLBACK : b.image;
+            const n = i + 1;
             return (
-              <motion.a
+              <motion.article
                 key={b.id}
-                href={b.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="offset-card marketplace-card"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -41,9 +39,11 @@ export function SustainableMarketplace({ onBack, onNextOffsets }) {
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                whileTap={{ scale: 0.99 }}
               >
                 <div className="offset-card__image-wrap marketplace-card__image-wrap">
+                  <span className="offset-card__rank marketplace-card__num" aria-hidden="true">
+                    {n}
+                  </span>
                   <img
                     src={img}
                     alt=""
@@ -58,7 +58,16 @@ export function SustainableMarketplace({ onBack, onNextOffsets }) {
                   <h3>{b.name}</h3>
                   <p className="marketplace-card__subtitle">{b.subtitle}</p>
                 </div>
-              </motion.a>
+                <a
+                  href={b.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="marketplace-card__learn"
+                  aria-label={`Shop more at ${b.name} (opens in new tab)`}
+                >
+                  Shop more
+                </a>
+              </motion.article>
             );
           })}
         </div>
@@ -70,11 +79,11 @@ export function SustainableMarketplace({ onBack, onNextOffsets }) {
           <motion.button
             type="button"
             className="btn-cta"
-            onClick={onNextOffsets}
+            onClick={onContinue}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Continue to offsets →
+            Continue to toolkit →
           </motion.button>
         </div>
       </div>

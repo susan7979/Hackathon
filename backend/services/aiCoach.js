@@ -21,9 +21,10 @@ function isValidPlan(obj) {
  * Deterministic steps from highest-impact categories — works without any API key.
  */
 function buildFallbackCoachPlan(habits, footprint) {
-  const b = footprint.breakdownKg || {};
+  const b = footprint.projectedBreakdownKg || footprint.breakdownKg || {};
   const sorted = CATEGORY_ORDER.map((k) => [k, b[k] || 0]).sort((a, x) => x[1] - a[1]);
-  const annual = footprint.annualKgCO2e || 0;
+  const annual = footprint.projectedAnnualKgCO2e || footprint.annualKgCO2e || 0;
+  const weeklyKg = footprint.weeklyKgCO2e;
   const grade = footprint.grade || "?";
   const steps = [];
   const commute = habits?.commute || {};
@@ -131,8 +132,9 @@ function buildFallbackCoachPlan(habits, footprint) {
     }
   }
 
+  const wk = weeklyKg != null ? `This week’s estimate is about ${Math.round(weeklyKg).toLocaleString()} kg CO₂e` : "Your footprint";
   return {
-    intro: `Your footprint is about ${Math.round(annual).toLocaleString()} kg CO₂e per year (grade ${grade}). These steps focus on your larger impact areas—tailored without calling an AI model.`,
+    intro: `${wk}; projected yearly ≈ ${Math.round(annual).toLocaleString()} kg CO₂e if every week looked like this (grade ${grade}). These steps focus on your larger impact areas—tailored without calling an AI model.`,
     steps: unique.slice(0, 6),
     closing:
       "Pick one change this week, then layer another. Small wins compound faster than an all-or-nothing overhaul.",

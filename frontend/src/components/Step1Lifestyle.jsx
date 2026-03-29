@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { formatCooldownRemaining } from "../utils/weeklyCheckInCooldown";
 
 const commuteModes = [
   { value: "car", label: "Car (solo)" },
@@ -22,6 +23,9 @@ const shoppingLevels = [
   { value: "high", label: "High — frequent new goods" },
 ];
 
+/** Matches backend emissionFactors commuteKgPerKm — distance adds no tailpipe CO₂ for these modes. */
+const COMMUTE_DISTANCE_CO2_MODES = new Set(["car", "hybrid_ev", "transit"]);
+
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   show: (i) => ({
@@ -31,7 +35,8 @@ const fadeUp = {
   }),
 };
 
-export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) {
+export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error, weeklyCooldown }) {
+  const cooldownBlocked = Boolean(weeklyCooldown?.blocked);
   function updateCommute(field, value) {
     setHabits((h) => ({
       ...h,
@@ -59,10 +64,11 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
           <span className="step-form__title-icon" aria-hidden>
             📋
           </span>
-          Lifestyle input
+          Weekly check-in
         </h2>
         <p className="step-form__lead">
-          Adjust sliders and menus — we turn your habits into an annual CO₂e estimate.
+          Log what happened <strong>this past week</strong> — we estimate your weekly CO₂e and a
+          projected yearly total if every week looked similar.
         </p>
 
         <motion.div className="input-block" custom={0} variants={fadeUp} initial="hidden" animate="show">
@@ -70,10 +76,10 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
             <span className="input-block__icon" aria-hidden>
               🚗
             </span>
-            <span className="input-block__title-text">Car & commute</span>
+            <span className="input-block__title-text">Commute & travel (this week)</span>
           </h3>
           <label className="select-wrap">
-            <span>Transport mode</span>
+            <span>Main transport mode</span>
             <select
               value={habits.commute.mode}
               onChange={(e) => updateCommute("mode", e.target.value)}
@@ -87,30 +93,27 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
           </label>
           <label className="slider-field">
             <span>
-              Daily travel distance <strong>{habits.commute.kmPerDay} km</strong>
+              Total commute / travel km <strong>{habits.commute.commuteKmThisWeek ?? 0} km</strong>
             </span>
             <input
               type="range"
               min={0}
-              max={120}
-              step={1}
-              value={habits.commute.kmPerDay}
-              onChange={(e) => updateCommute("kmPerDay", Number(e.target.value))}
+              max={800}
+              step={5}
+              value={habits.commute.commuteKmThisWeek ?? 0}
+              onChange={(e) => updateCommute("commuteKmThisWeek", Number(e.target.value))}
             />
           </label>
-          <label className="slider-field">
-            <span>
-              Commute days / week <strong>{habits.commute.daysPerWeek}</strong>
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={7}
-              step={1}
-              value={habits.commute.daysPerWeek}
-              onChange={(e) => updateCommute("daysPerWeek", Number(e.target.value))}
-            />
-          </label>
+          {!COMMUTE_DISTANCE_CO2_MODES.has(habits.commute.mode) && (
+            <p
+              className="step-form__lead"
+              style={{ marginTop: "0.5rem", fontSize: "0.88rem", opacity: 0.92 }}
+            >
+              For walking, cycling, or remote work, this model treats commute emissions as{" "}
+              <strong>0 kg CO₂e / km</strong> (no tailpipe). Distance is still logged for your
+              record; it will not change the transport slice on your score.
+            </p>
+          )}
         </motion.div>
 
         <motion.div className="input-block" custom={1} variants={fadeUp} initial="hidden" animate="show">
@@ -118,32 +121,32 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
             <span className="input-block__icon" aria-hidden>
               ✈️
             </span>
-            <span className="input-block__title-text">Flights per year</span>
+            <span className="input-block__title-text">Flights (this week)</span>
           </h3>
           <label className="slider-field">
             <span>
-              Short-haul trips <strong>{habits.flights.shortHaulPerYear}</strong>
+              Short-haul flights <strong>{habits.flights.shortHaulThisWeek ?? 0}</strong>
             </span>
             <input
               type="range"
               min={0}
-              max={24}
+              max={8}
               step={1}
-              value={habits.flights.shortHaulPerYear}
-              onChange={(e) => updateFlights("shortHaulPerYear", Number(e.target.value))}
+              value={habits.flights.shortHaulThisWeek ?? 0}
+              onChange={(e) => updateFlights("shortHaulThisWeek", Number(e.target.value))}
             />
           </label>
           <label className="slider-field">
             <span>
-              Long-haul trips <strong>{habits.flights.longHaulPerYear}</strong>
+              Long-haul flights <strong>{habits.flights.longHaulThisWeek ?? 0}</strong>
             </span>
             <input
               type="range"
               min={0}
-              max={12}
+              max={4}
               step={1}
-              value={habits.flights.longHaulPerYear}
-              onChange={(e) => updateFlights("longHaulPerYear", Number(e.target.value))}
+              value={habits.flights.longHaulThisWeek ?? 0}
+              onChange={(e) => updateFlights("longHaulThisWeek", Number(e.target.value))}
             />
           </label>
         </motion.div>
@@ -153,7 +156,7 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
             <span className="input-block__icon" aria-hidden>
               🥗
             </span>
-            <span className="input-block__title-text">Diet</span>
+            <span className="input-block__title-text">Diet pattern (this week)</span>
           </h3>
           <label className="select-wrap">
             <span>Typical diet</span>
@@ -175,22 +178,22 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
             <span className="input-block__icon" aria-hidden>
               ⚡
             </span>
-            <span className="input-block__title-text">Home energy</span>
+            <span className="input-block__title-text">Home electricity (this week)</span>
           </h3>
           <label className="slider-field">
             <span>
-              Grid electricity <strong>{habits.home.kwhPerMonth} kWh / month</strong>
+              Grid electricity <strong>{habits.home.kwhThisWeek ?? 0} kWh</strong>
             </span>
             <input
               type="range"
               min={0}
-              max={1200}
-              step={10}
-              value={habits.home.kwhPerMonth}
+              max={500}
+              step={5}
+              value={habits.home.kwhThisWeek ?? 0}
               onChange={(e) =>
                 setHabits((h) => ({
                   ...h,
-                  home: { kwhPerMonth: Number(e.target.value) },
+                  home: { kwhThisWeek: Number(e.target.value) },
                 }))
               }
             />
@@ -202,7 +205,7 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
             <span className="input-block__icon" aria-hidden>
               🛒
             </span>
-            <span className="input-block__title-text">Shopping & goods</span>
+            <span className="input-block__title-text">Shopping & goods (this week)</span>
           </h3>
           <label className="select-wrap">
             <span>Consumption level</span>
@@ -224,14 +227,34 @@ export function Step1Lifestyle({ habits, setHabits, onSubmit, loading, error }) 
           </label>
         </motion.div>
 
+        {cooldownBlocked && weeklyCooldown?.lastSubmittedAt && (
+          <motion.div
+            className="weekly-cooldown-banner"
+            role="status"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            <strong>Weekly check-in submitted</strong>{" "}
+            {weeklyCooldown.lastSubmittedAt.toLocaleString()}. Next full assessment in{" "}
+            <strong>{formatCooldownRemaining(weeklyCooldown.msRemaining)}</strong> (opens{" "}
+            {weeklyCooldown.nextAllowedAt?.toLocaleString?.() ?? "—"}). You can still use the{" "}
+            <strong>Toolkit → What-if</strong> anytime to model scenarios without a new log.
+          </motion.div>
+        )}
+
         <motion.button
           type="submit"
           className="btn-cta"
-          disabled={loading}
-          whileHover={{ scale: loading ? 1 : 1.02 }}
-          whileTap={{ scale: loading ? 1 : 0.98 }}
+          disabled={loading || cooldownBlocked}
+          whileHover={{ scale: loading || cooldownBlocked ? 1 : 1.02 }}
+          whileTap={{ scale: loading || cooldownBlocked ? 1 : 0.98 }}
         >
-          {loading ? "Crunching numbers…" : "See my carbon score →"}
+          {loading
+            ? "Crunching numbers…"
+            : cooldownBlocked
+              ? `Next check-in in ${formatCooldownRemaining(weeklyCooldown?.msRemaining ?? 0)}`
+              : "See this week’s carbon score →"}
         </motion.button>
 
         {error && (

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-/** Compact strip + CTA to open the toolkit (step 5) or scroll to #carbon-toolkit when embedded */
+/** Compact strip + CTA to open the toolkit (step 4) or scroll to #carbon-toolkit when embedded */
 export function ToolkitTeaser({ gamify, variant = "default", onOpenToolkit, onOpenPortfolio }) {
   const n = (gamify.badges || []).length;
   const lvl = gamify.level ?? 1;

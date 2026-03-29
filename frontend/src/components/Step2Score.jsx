@@ -2,8 +2,9 @@ import { motion } from "framer-motion";
 import { RingGauge } from "./RingGauge";
 import { ToolkitTeaser } from "./ToolkitTeaser";
 import { BreakdownDonut } from "./BreakdownDonut";
+import { CarbonScorePdfButton } from "./CarbonScorePdfButton";
 import { CATEGORY_COLORS } from "../constants";
-import { formatTonnesFromKg, UNIT_METRIC_TONNES_YR } from "../utils/formatEmissions";
+import { formatTonnesFromKg, UNIT_METRIC_TONNES_WK } from "../utils/formatEmissions";
 
 const BREAKDOWN_ORDER = ["commute", "flights", "diet", "shopping", "home"];
 
@@ -25,13 +26,26 @@ const tierCopy = {
   },
 };
 
-export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, onOpenPortfolio }) {
+export function Step2Score({
+  footprint,
+  gamify,
+  habits,
+  userDisplayName,
+  onNext,
+  onBack,
+  onOpenToolkit,
+  onOpenPortfolio,
+}) {
   if (!footprint) return null;
 
   const tier = tierCopy[footprint.comparison?.relativeToUs] || tierCopy.average;
   const over = footprint.carbonBudget?.status !== "within";
-  const targetKg = footprint.carbonBudget.targetAnnualKg;
-  const annualKg = footprint.annualKgCO2e;
+  const targetAnnualKg = footprint.carbonBudget.targetAnnualKg;
+  const targetWeeklyKg = footprint.carbonBudget.targetWeeklyKg ?? targetAnnualKg / 52;
+  const weeklyKg = footprint.weeklyKgCO2e ?? footprint.annualKgCO2e / 52;
+  const projectedAnnualKg = footprint.projectedAnnualKgCO2e ?? footprint.annualKgCO2e;
+  const chg = footprint.changeFromLastWeek;
+  const streak = footprint.streak;
   const breakdownSlices = BREAKDOWN_ORDER.map((key) => ({
     key,
     kg: footprint.breakdownKg?.[key] ?? 0,
@@ -47,14 +61,15 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
       transition={{ duration: 0.4 }}
     >
       <div className="glass-card dashboard-card">
-        <h2 className="step-form__title">Your carbon score</h2>
+        <h2 className="step-form__title">Your carbon score — this week</h2>
         <p className="step-form__lead">
-          Annual footprint, how you compare globally and in the US, and where emissions come from.
+          Weekly footprint from your check-in, benchmarks, and where emissions came from this week.
+          Projected yearly ≈ {formatTonnesFromKg(projectedAnnualKg, 2)} t if every week looked like this.
         </p>
 
         <div className="score-hero">
           <RingGauge
-            annualKg={footprint.annualKgCO2e}
+            valueKg={weeklyKg}
             globalAverageKg={footprint.comparison?.globalAverageAnnualKg}
           />
           <div className="score-hero__meta">
@@ -76,14 +91,33 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
                 <span className="mini-stat__lbl">Sustainability score</span>
               </div>
               <div className="mini-stat">
-                <span className="mini-stat__val">
-                  {formatTonnesFromKg(footprint.annualKgCO2e, 2)}
-                </span>
-                <span className="mini-stat__lbl">{UNIT_METRIC_TONNES_YR}</span>
+                <span className="mini-stat__val">{formatTonnesFromKg(weeklyKg, 2)}</span>
+                <span className="mini-stat__lbl">{UNIT_METRIC_TONNES_WK}</span>
               </div>
             </div>
+            {streak != null && (
+              <p className="score-hero__streak">
+                Weekly log streak: <strong>{streak.currentWeeklyStreak}</strong> week
+                {streak.currentWeeklyStreak === 1 ? "" : "s"}
+                {streak.longestWeeklyStreak != null && streak.longestWeeklyStreak > 0
+                  ? ` · best ${streak.longestWeeklyStreak}`
+                  : ""}
+              </p>
+            )}
           </div>
         </div>
+
+        {chg && (
+          <div
+            className={`weekly-delta ${chg.improved ? "weekly-delta--improved" : "weekly-delta--higher"}`}
+            role="status"
+          >
+            <strong>vs last logged week:</strong>{" "}
+            {chg.improved ? "Improved" : "Higher"} by{" "}
+            {chg.percentChange != null ? `${Math.abs(chg.percentChange)}%` : "—"} (
+            {formatTonnesFromKg(Math.abs(chg.weeklyKgDelta ?? 0), 2)} t CO₂e / week)
+          </div>
+        )}
 
         <div className="compare-grid">
           <motion.article
@@ -97,11 +131,12 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
             </span>
             <h4>Global average</h4>
             <p className="compare-card__num">
-              ~{formatTonnesFromKg(footprint.comparison.globalAverageAnnualKg, 1)} metric tonnes / yr
+              ~{formatTonnesFromKg(footprint.comparison.globalAverageWeeklyKg ?? footprint.comparison.globalAverageAnnualKg / 52, 2)}{" "}
+              t / week
             </p>
             <p className="compare-card__hint">
-              You are at <strong>{footprint.comparison.yourPercentOfGlobalAverage}%</strong> of that
-              benchmark.
+              You are at <strong>{footprint.comparison.yourPercentOfGlobalAverage}%</strong> of the
+              yearly benchmark (same ratio weekly).
             </p>
           </motion.article>
           <motion.article
@@ -116,37 +151,37 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
             <h4>US average</h4>
             <p className="compare-card__num">
               ~
-              {formatTonnesFromKg(footprint.comparison.usAverageAnnualKg ?? 14900, 1)} metric tonnes /
-              yr
+              {formatTonnesFromKg(footprint.comparison.usAverageWeeklyKg ?? (footprint.comparison.usAverageAnnualKg ?? 14900) / 52, 2)}{" "}
+              t / week
             </p>
             <p className="compare-card__hint">
               You are at <strong>{footprint.comparison.yourPercentOfUsAverage ?? "—"}%</strong> of
-              that benchmark.
+              the yearly US benchmark (same ratio weekly).
             </p>
           </motion.article>
         </div>
 
         <div className="budget-meter">
-          <h3 className="section-heading">Carbon budget</h3>
+          <h3 className="section-heading">Carbon budget (this week)</h3>
           <p className="budget-meter__lede">
-            Your yearly emissions compared to a fair-share target (roughly aligned with global climate
-            goals).
+            This week vs a fair-share weekly slice of a global climate goal. Yearly projection:{" "}
+            {formatTonnesFromKg(projectedAnnualKg, 2)} t / yr.
           </p>
 
           <div className="budget-meter__cards">
             <div className="budget-meter__card">
-              <span className="budget-meter__card-label">Your footprint</span>
+              <span className="budget-meter__card-label">This week</span>
               <span className="budget-meter__card-value">
-                {formatTonnesFromKg(annualKg, 2)}
+                {formatTonnesFromKg(weeklyKg, 2)}
               </span>
-              <span className="budget-meter__card-unit">{UNIT_METRIC_TONNES_YR}</span>
+              <span className="budget-meter__card-unit">{UNIT_METRIC_TONNES_WK}</span>
             </div>
             <div className="budget-meter__card budget-meter__card--target">
-              <span className="budget-meter__card-label">Fair share target</span>
+              <span className="budget-meter__card-label">Fair share (weekly)</span>
               <span className="budget-meter__card-value">
-                ~{formatTonnesFromKg(targetKg, 2)}
+                ~{formatTonnesFromKg(targetWeeklyKg, 2)}
               </span>
-              <span className="budget-meter__card-unit">{UNIT_METRIC_TONNES_YR}</span>
+              <span className="budget-meter__card-unit">{UNIT_METRIC_TONNES_WK}</span>
             </div>
           </div>
 
@@ -159,45 +194,16 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
             </span>
             <span>
               {footprint.carbonBudget.status === "within"
-                ? `${formatTonnesFromKg(footprint.carbonBudget.remainingKg, 2)} t under your fair-share target — room to improve or stay steady.`
-                : `${formatTonnesFromKg(footprint.carbonBudget.overBudgetKg, 2)} t over your fair-share target — prioritize high-impact cuts (travel, home, diet).`}
+                ? `${formatTonnesFromKg(footprint.carbonBudget.remainingKg, 2)} t under your weekly fair-share slice — room to improve or stay steady.`
+                : `${formatTonnesFromKg(footprint.carbonBudget.overBudgetKg, 2)} t over your weekly fair-share slice — prioritize high-impact cuts (travel, home, diet).`}
             </span>
-          </div>
-
-          <div
-            className="budget-meter__scale-cards"
-            aria-label={`Fair share ${formatTonnesFromKg(targetKg, 2)} t; your footprint ${formatTonnesFromKg(annualKg, 2)} t.`}
-          >
-            <div
-              className={`budget-meter__card budget-meter__card--scale ${
-                footprint.carbonBudget.status === "within"
-                  ? "budget-meter__card--gap-under"
-                  : "budget-meter__card--gap-over"
-              }`}
-            >
-              <span className="budget-meter__card-label">
-                {footprint.carbonBudget.status === "within"
-                  ? "Headroom under fair share"
-                  : "Extra vs fair share"}
-              </span>
-              <span className="budget-meter__card-value">
-                {footprint.carbonBudget.status === "within"
-                  ? formatTonnesFromKg(footprint.carbonBudget.remainingKg, 2)
-                  : formatTonnesFromKg(footprint.carbonBudget.overBudgetKg, 2)}
-              </span>
-              <span className="budget-meter__card-unit">
-                {footprint.carbonBudget.status === "within"
-                  ? "metric tonnes CO₂e / yr below target"
-                  : "metric tonnes CO₂e / yr above target"}
-              </span>
-            </div>
           </div>
         </div>
 
         <div className="emissions-breakdown">
           <h3 className="emissions-breakdown__title">Emissions breakdown</h3>
           <p className="emissions-breakdown__sub">
-            Share of your annual footprint by category (metric tonnes CO₂e).
+            Share of this week’s footprint by category (metric tonnes CO₂e).
           </p>
           <div className="emissions-breakdown__grid">
             <ul className="emissions-breakdown__list">
@@ -222,7 +228,7 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
               ))}
             </ul>
             <div className="emissions-breakdown__chart-wrap">
-              <BreakdownDonut slices={breakdownSlices} totalKg={footprint.annualKgCO2e} size={300} />
+              <BreakdownDonut slices={breakdownSlices} totalKg={footprint.weeklyKgCO2e ?? weeklyKg} size={300} />
             </div>
           </div>
         </div>
@@ -238,7 +244,7 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
 
         <div className="step-actions">
           <button type="button" className="btn-ghost" onClick={onBack}>
-            ← Edit lifestyle
+            ← Edit weekly check-in
           </button>
           <motion.button
             type="button"
@@ -250,6 +256,12 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, o
             Continue to marketplace →
           </motion.button>
         </div>
+
+        <CarbonScorePdfButton
+          footprint={footprint}
+          habits={habits}
+          userDisplayName={userDisplayName}
+        />
       </div>
     </motion.section>
   );

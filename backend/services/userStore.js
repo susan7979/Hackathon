@@ -31,6 +31,10 @@ function migrateUser(u) {
   if (u.level == null || Number.isNaN(Number(u.level))) {
     u.level = levelFromTotalXp(u.totalXp || 0);
   }
+  if (u.currentWeeklyStreak == null || Number.isNaN(Number(u.currentWeeklyStreak))) u.currentWeeklyStreak = 0;
+  if (u.longestWeeklyStreak == null || Number.isNaN(Number(u.longestWeeklyStreak))) u.longestWeeklyStreak = 0;
+  if (u.weeklyKgCO2e != null && Number.isNaN(Number(u.weeklyKgCO2e))) u.weeklyKgCO2e = null;
+  if (u.weekVsPriorPercent != null && Number.isNaN(Number(u.weekVsPriorPercent))) u.weekVsPriorPercent = null;
   return u;
 }
 
@@ -91,6 +95,11 @@ async function createUser({ email, password, displayName }) {
     passwordHash,
     displayName: String(displayName || "").trim().slice(0, 80),
     annualKgCO2e: null,
+    weeklyKgCO2e: null,
+    weekVsPriorPercent: null,
+    currentWeeklyStreak: 0,
+    longestWeeklyStreak: 0,
+    lastWeeklyWeekStart: null,
     updatedAt: null,
     totalXp: 0,
     level: 1,
@@ -113,11 +122,47 @@ async function verifyLogin(email, password) {
 }
 
 function updateFootprint(userId, annualKgCO2e) {
+  const n = Math.round(Number(annualKgCO2e));
+  return updateWeeklyFootprintStats(userId, {
+    projectedAnnualKgCO2e: n,
+    weeklyKgCO2e: Math.round(n / 52),
+  });
+}
+
+/**
+ * @param {object} stats — projectedAnnualKgCO2e, weeklyKgCO2e, weekVsPriorPercent, streak fields
+ */
+function updateWeeklyFootprintStats(userId, stats = {}) {
   const users = readAll();
   const i = users.findIndex((u) => u.id === userId);
   if (i === -1) return null;
-  users[i].annualKgCO2e = Math.round(Number(annualKgCO2e));
-  users[i].updatedAt = new Date().toISOString();
+  const u = users[i];
+
+  if (stats.projectedAnnualKgCO2e != null) {
+    const n = Math.round(Number(stats.projectedAnnualKgCO2e));
+    if (Number.isFinite(n)) u.annualKgCO2e = n;
+  }
+  if (stats.weeklyKgCO2e != null) {
+    const w = Math.round(Number(stats.weeklyKgCO2e));
+    if (Number.isFinite(w)) u.weeklyKgCO2e = w;
+  }
+  if (stats.weekVsPriorPercent != null) {
+    const p = Number(stats.weekVsPriorPercent);
+    if (Number.isFinite(p)) u.weekVsPriorPercent = Math.round(p * 10) / 10;
+  }
+  if (stats.currentWeeklyStreak != null) {
+    const s = Math.round(Number(stats.currentWeeklyStreak));
+    if (Number.isFinite(s)) u.currentWeeklyStreak = Math.max(0, s);
+  }
+  if (stats.longestWeeklyStreak != null) {
+    const s = Math.round(Number(stats.longestWeeklyStreak));
+    if (Number.isFinite(s)) u.longestWeeklyStreak = Math.max(0, s);
+  }
+  if (stats.lastWeeklyWeekStart !== undefined) {
+    u.lastWeeklyWeekStart = stats.lastWeeklyWeekStart;
+  }
+
+  u.updatedAt = new Date().toISOString();
   writeAll(users);
   return users[i];
 }
@@ -171,9 +216,12 @@ function getPublicUsers() {
       id: u.id,
       displayName: u.displayName,
       annualKgCO2e: u.annualKgCO2e,
+      weeklyKgCO2e: u.weeklyKgCO2e,
+      weekVsPriorPercent: u.weekVsPriorPercent,
       updatedAt: u.updatedAt,
       totalXp: txp,
       level: u.level != null ? u.level : levelFromTotalXp(txp),
+      currentWeeklyStreak: u.currentWeeklyStreak ?? 0,
     };
   });
 }
@@ -184,6 +232,7 @@ module.exports = {
   createUser,
   verifyLogin,
   updateFootprint,
+  updateWeeklyFootprintStats,
   updateXp,
   updateGamify,
   getPublicUsers,

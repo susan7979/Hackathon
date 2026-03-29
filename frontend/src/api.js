@@ -37,15 +37,6 @@ async function parseResponse(res) {
   return data;
 }
 
-export async function postDashboard(habits) {
-  const res = await fetch(`${base}/api/footprint/dashboard`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(habits),
-  });
-  return parseResponse(res);
-}
-
 export async function postCalculate(habits) {
   const res = await fetch(`${base}/api/footprint/calculate`, {
     method: "POST",
@@ -96,6 +87,59 @@ function authJsonHeaders() {
   };
 }
 
+/** Ensures weekly check-in fields are explicit numbers so JSON never omits commute km (undefined strips keys). */
+export function normalizeWeeklyCheckInHabits(h) {
+  if (!h || typeof h !== "object") return h;
+  const commute = h.commute || {};
+  const flights = h.flights || {};
+  const home = h.home || {};
+  return {
+    diet: h.diet ?? "average",
+    shopping: { level: h.shopping?.level ?? "medium" },
+    commute: {
+      mode: commute.mode ?? "car",
+      commuteKmThisWeek: Math.max(0, Number(commute.commuteKmThisWeek) || 0),
+    },
+    flights: {
+      shortHaulThisWeek: Math.max(0, Number(flights.shortHaulThisWeek) || 0),
+      longHaulThisWeek: Math.max(0, Number(flights.longHaulThisWeek) || 0),
+    },
+    home: {
+      kwhThisWeek: Math.max(0, Number(home.kwhThisWeek) || 0),
+    },
+  };
+}
+
+export async function postDashboard(habits) {
+  const body = normalizeWeeklyCheckInHabits(habits);
+  const res = await fetch(`${base}/api/footprint/dashboard`, {
+    method: "POST",
+    headers: authJsonHeaders(),
+    body: JSON.stringify(body),
+  });
+  return parseResponse(res);
+}
+
+/** Server-generated PDF (Puppeteer). Returns a Blob on success. */
+export async function postCarbonScoreReportPdf({ habits, displayName }) {
+  const res = await fetch(`${base}/api/footprint/report/pdf`, {
+    method: "POST",
+    headers: authJsonHeaders(),
+    body: JSON.stringify({ habits, displayName: displayName || "" }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let data = {};
+    try {
+      data = JSON.parse(text);
+    } catch {
+      /* use text */
+    }
+    throw new Error(data.detail || data.error || text || res.statusText);
+  }
+  return res.blob();
+}
+
 function authBearerHeaders() {
   const t = getStoredToken();
   return t ? { Authorization: `Bearer ${t}` } : {};
@@ -126,9 +170,19 @@ export async function getMe() {
   return parseResponse(res);
 }
 
-export async function getLeaderboard() {
-  const res = await fetch(`${base}/api/leaderboard`, {
+/** @param {"weekly"|"projected"|"xp"|"improved"} [mode] */
+export async function getLeaderboard(mode = "weekly") {
+  const q = mode ? `?mode=${encodeURIComponent(mode)}` : "";
+  const res = await fetch(`${base}/api/leaderboard${q}`, {
     headers: authBearerHeaders(),
+  });
+  return parseResponse(res);
+}
+
+/** Authenticated — last weekly carbon records for trends. */
+export async function getWeeklyHistory(limit = 24) {
+  const res = await fetch(`${base}/api/footprint/weekly/history?limit=${limit}`, {
+    headers: authJsonHeaders(),
   });
   return parseResponse(res);
 }
@@ -164,4 +218,30 @@ export async function submitGamificationState({
 
 export async function submitGamifyXp(totalXp) {
   return submitGamificationState({ totalXp });
+}
+
+/** Public feed — newest pledges first (all users). */
+export async function getPledges(limit = 50, offset = 0) {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  if (offset > 0) params.set("offset", String(offset));
+  const res = await fetch(`${base}/api/pledges?${params}`);
+  return parseResponse(res);
+}
+
+/** Post a pledge (requires logged-in session). Optional xpAtPost/levelAtPost freeze stats on the card. */
+export async function postPledge(text, snapshot = {}) {
+  const body = { text: String(text || "").trim() };
+  if (snapshot.xpAtPost != null && Number.isFinite(Number(snapshot.xpAtPost))) {
+    body.xpAtPost = Math.round(Number(snapshot.xpAtPost));
+  }
+  if (snapshot.levelAtPost != null && Number.isFinite(Number(snapshot.levelAtPost))) {
+    body.levelAtPost = Math.round(Number(snapshot.levelAtPost));
+  }
+  const res = await fetch(`${base}/api/pledges`, {
+    method: "POST",
+    headers: authJsonHeaders(),
+    body: JSON.stringify(body),
+  });
+  return parseResponse(res);
 }
