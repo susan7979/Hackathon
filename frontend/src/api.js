@@ -142,11 +142,26 @@ export async function submitFootprintScore(annualKgCO2e) {
   return parseResponse(res);
 }
 
-export async function submitGamifyXp(totalXp) {
+/** Full gamification sync for DB + leaderboards (XP, level, stars, badges). */
+export async function submitGamificationState({
+  totalXp,
+  level,
+  achievementStars,
+  badgesEarned,
+}) {
   const res = await fetch(`${base}/api/leaderboard/xp`, {
     method: "POST",
     headers: authJsonHeaders(),
-    body: JSON.stringify({ totalXp }),
+    body: JSON.stringify({
+      totalXp,
+      level,
+      achievementStars,
+      badgesEarned,
+    }),
   });
   return parseResponse(res);
+}
+
+export async function submitGamifyXp(totalXp) {
+  return submitGamificationState({ totalXp });
 }

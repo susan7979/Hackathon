@@ -15,7 +15,7 @@ const TABS = [
 /**
  * Full-featured toolkit: always rendered below the wizard once a footprint exists.
  */
-export function IntegratedToolkit({ habits, footprint, result, gamify }) {
+export function IntegratedToolkit({ habits, footprint, result, gamify, onOpenPortfolio }) {
   const [tab, setTab] = useState("play");
 
   useEffect(() => {
@@ -35,7 +35,18 @@ export function IntegratedToolkit({ habits, footprint, result, gamify }) {
       transition={{ duration: 0.45 }}
     >
       <div className="integrated-toolkit__head">
-        <h2 className="integrated-toolkit__title">Your carbon toolkit</h2>
+        <div className="integrated-toolkit__head-top">
+          <h2 className="integrated-toolkit__title">Your carbon toolkit</h2>
+          {typeof onOpenPortfolio === "function" && (
+            <button
+              type="button"
+              className="integrated-toolkit__progress-link"
+              onClick={onOpenPortfolio}
+            >
+              Your progress
+            </button>
+          )}
+        </div>
         <p className="integrated-toolkit__sub">
           Everything below uses the same API as your score — challenges, simulations, pledges, AI
           coach, savings, heatmaps, and exports in one place.

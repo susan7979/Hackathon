@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const userStore = require("../services/userStore");
+const { levelFromTotalXp } = require("../utils/xpLevel");
 
 const SEED_PATH = path.join(__dirname, "..", "data", "leaderboardSeed.json");
 
@@ -33,6 +34,7 @@ exports.getLeaderboard = (req, res) => {
       name: u.displayName,
       annualKg: u.annualKgCO2e,
       totalXp: u.totalXp != null ? u.totalXp : 0,
+      level: u.level != null ? u.level : levelFromTotalXp(u.totalXp || 0),
       avatar: "⭐",
       isYou: Boolean(req.user && req.user.sub === u.id),
     }));
@@ -69,16 +71,24 @@ exports.getLeaderboard = (req, res) => {
 
 exports.postSubmitXp = (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Authentication required" });
-  const xp = req.body?.totalXp;
-  if (xp == null || Number.isNaN(Number(xp))) {
+  const { totalXp, level, achievementStars, badgesEarned } = req.body || {};
+  if (totalXp == null || Number.isNaN(Number(totalXp))) {
     return res.status(400).json({ error: "totalXp is required (number)" });
   }
-  const updated = userStore.updateXp(req.user.sub, xp);
+  const updated = userStore.updateGamify(req.user.sub, {
+    totalXp,
+    level,
+    achievementStars,
+    badgesEarned,
+  });
   if (!updated) return res.status(404).json({ error: "User not found" });
   res.json({
     ok: true,
     totalXp: updated.totalXp,
-    updatedAt: updated.xpUpdatedAt,
+    level: updated.level,
+    achievementStars: updated.achievementStars,
+    badgesEarned: updated.badgesEarned,
+    updatedAt: updated.gamifyUpdatedAt,
   });
 };
 

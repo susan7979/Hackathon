@@ -62,11 +62,14 @@ exports.postLogin = async (req, res) => {
 
 exports.getMe = (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+  const row = userStore.findById(req.user.sub);
+  const gamification = userStore.getGamificationSnapshot(row);
   res.json({
     user: {
       id: req.user.sub,
       email: req.user.email,
       displayName: req.user.displayName,
+      gamification,
     },
   });
 };

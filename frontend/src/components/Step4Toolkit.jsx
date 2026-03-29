@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { IntegratedToolkit } from "./IntegratedToolkit";
 
-export function Step4Toolkit({ habits, footprint, result, gamify, onBack }) {
+export function Step4Toolkit({ habits, footprint, result, gamify, onBack, onOpenPortfolio }) {
   return (
     <motion.section
       className="step-panel step-panel--4"
@@ -15,6 +15,7 @@ export function Step4Toolkit({ habits, footprint, result, gamify, onBack }) {
         footprint={footprint}
         result={result}
         gamify={gamify}
+        onOpenPortfolio={onOpenPortfolio}
       />
       <div className="step-actions step-actions--toolkit-footer step-actions--wrap">
         <button type="button" className="btn-ghost" onClick={onBack}>

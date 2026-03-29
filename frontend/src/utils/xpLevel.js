@@ -1,39 +1,133 @@
-/** Level curve: higher levels need more total XP (soft cap at 99). */
+/**
+ * CUTThecarbon level curve: total XP thresholds (minimum XP to *be* that level).
+ * L1: 0–99, L2: 100–249, L3: 250–449, L4: 450–699, L5: 700–999, then scalable steps.
+ */
+const LEVEL_START_XP = [0];
+
+function buildLevelStarts() {
+  LEVEL_START_XP.length = 0;
+  LEVEL_START_XP.push(0); // pad index 0
+  LEVEL_START_XP[1] = 0;
+  LEVEL_START_XP[2] = 100;
+  LEVEL_START_XP[3] = 250;
+  LEVEL_START_XP[4] = 450;
+  LEVEL_START_XP[5] = 700;
+  let x = 700;
+  for (let L = 6; L <= 99; L++) {
+    const step = 250 + (L - 5) * 50;
+    x += Math.min(step, 2500);
+    LEVEL_START_XP[L] = x;
+  }
+}
+
+buildLevelStarts();
+
+const LEVEL_TITLES = [
+  "",
+  "Beginner",
+  "Conscious starter",
+  "Green builder",
+  "Eco warrior",
+  "Climate champion",
+  "Planetary ally",
+  "Carbon strategist",
+  "Regeneration lead",
+  "Impact director",
+  "Global steward",
+  "Sustainability mentor",
+  "Climate innovator",
+  "Systems thinker",
+  "Net-zero pathfinder",
+  "Circular champion",
+  "Resilience builder",
+  "Policy advocate",
+  "Community catalyst",
+  "Restoration partner",
+  "Future forester",
+];
+
+export function getLevelTitle(level) {
+  const L = Math.max(1, Math.min(99, Math.floor(level) || 1));
+  if (L < LEVEL_TITLES.length) return LEVEL_TITLES[L];
+  if (L < 30) return "Climate veteran";
+  if (L < 50) return "Legacy guardian";
+  if (L < 75) return "Planet partner";
+  return "Carbon luminary";
+}
+
+/** Current level (1–99) from lifetime total XP. */
 export function levelFromTotalXp(totalXp) {
   const xp = Math.max(0, Number(totalXp) || 0);
-  if (xp < 150) return 1;
-  if (xp < 400) return 2;
-  if (xp < 800) return 3;
-  if (xp < 1400) return 4;
-  if (xp < 2200) return 5;
-  if (xp < 3200) return 6;
-  if (xp < 4500) return 7;
-  if (xp < 6000) return 8;
-  if (xp < 8000) return 9;
-  if (xp < 10500) return 10;
-  const extra = xp - 10500;
-  return Math.min(99, 11 + Math.floor(extra / 2500));
+  let level = 1;
+  for (let L = 99; L >= 1; L--) {
+    if (xp >= LEVEL_START_XP[L]) {
+      level = L;
+      break;
+    }
+  }
+  return Math.min(99, level);
 }
 
-/** XP threshold to reach the *next* level (for progress bar). */
-export function xpThresholdForLevel(level) {
-  const table = [0, 150, 400, 800, 1400, 2200, 3200, 4500, 6000, 8000, 10500];
-  if (level < 11) return table[level] ?? 0;
-  return 10500 + (level - 11) * 2500;
+/** Minimum total XP required to reach `level` (level is 1-based). */
+export function minXpForLevel(level) {
+  const L = Math.max(1, Math.min(99, Math.floor(level) || 1));
+  return LEVEL_START_XP[L] ?? 0;
 }
 
-/** Fraction 0–1 of progress from current level to next. */
+/** XP required to enter the next level (undefined if already max). */
+export function minXpForNextLevel(level) {
+  const L = Math.floor(level) || 1;
+  if (L >= 99) return undefined;
+  return LEVEL_START_XP[L + 1];
+}
+
+/**
+ * Progress within current level: 0–1.
+ * At max level, returns 1 when XP >= last threshold.
+ */
 export function levelProgress(totalXp) {
-  const lvl = levelFromTotalXp(totalXp);
-  const cur = xpThresholdForLevel(lvl);
-  const next = xpThresholdForLevel(lvl + 1);
+  const xp = Math.max(0, Number(totalXp) || 0);
+  const lvl = levelFromTotalXp(xp);
+  const cur = minXpForLevel(lvl);
+  const next = minXpForNextLevel(lvl);
+  if (next == null) return 1;
   if (next <= cur) return 1;
-  const p = (totalXp - cur) / (next - cur);
-  return Math.max(0, Math.min(1, p));
+  return Math.max(0, Math.min(1, (xp - cur) / (next - cur)));
 }
 
-/** Streak multiplier for bonus XP on weekly challenges (cap 2×). */
+/** XP still needed to reach the next level (0 if max level). */
+export function xpRemainingToNextLevel(totalXp) {
+  const xp = Math.max(0, Number(totalXp) || 0);
+  const lvl = levelFromTotalXp(xp);
+  const next = minXpForNextLevel(lvl);
+  if (next == null) return 0;
+  return Math.max(0, next - xp);
+}
+
+/** @deprecated Use minXpForLevel — kept for leaderboard code that imported this name. */
+export function xpThresholdForLevel(level) {
+  return minXpForLevel(level);
+}
+
+/**
+ * Stepped visit-streak bonus for weekly challenge XP (product spec).
+ * 3d +5%, 7d +10%, 14d +15%, 30d +25%.
+ */
+export function streakPercentBonus(streakDays) {
+  const s = Math.max(0, Number(streakDays) || 0);
+  if (s >= 30) return 0.25;
+  if (s >= 14) return 0.15;
+  if (s >= 7) return 0.1;
+  if (s >= 3) return 0.05;
+  return 0;
+}
+
+export function applyStreakBonus(baseXp, streakDays) {
+  const b = Math.max(0, Number(baseXp) || 0);
+  return Math.round(b * (1 + streakPercentBonus(streakDays)));
+}
+
+/** Multiplier for UI (e.g. ×1.10) — derived from stepped bonus. */
 export function streakXpMultiplier(streakDays) {
-  const s = Math.max(0, Math.min(40, Number(streakDays) || 0));
-  return Math.min(2, 1 + s * 0.035);
+  return 1 + streakPercentBonus(streakDays);
 }

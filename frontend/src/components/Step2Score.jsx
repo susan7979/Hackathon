@@ -25,16 +25,13 @@ const tierCopy = {
   },
 };
 
-export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit }) {
+export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit, onOpenPortfolio }) {
   if (!footprint) return null;
 
   const tier = tierCopy[footprint.comparison?.relativeToUs] || tierCopy.average;
   const over = footprint.carbonBudget?.status !== "within";
   const targetKg = footprint.carbonBudget.targetAnnualKg;
   const annualKg = footprint.annualKgCO2e;
-  const scaleMax = Math.max(annualKg, targetKg, 1) * 1.06;
-  const targetPct = Math.min(100, (targetKg / scaleMax) * 100);
-  const youPct = Math.min(100, (annualKg / scaleMax) * 100);
   const breakdownSlices = BREAKDOWN_ORDER.map((key) => ({
     key,
     kg: footprint.breakdownKg?.[key] ?? 0,
@@ -162,35 +159,37 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit })
             </span>
             <span>
               {footprint.carbonBudget.status === "within"
-                ? `${formatTonnesFromKg(footprint.carbonBudget.remainingKg, 2)} metric tonnes under target — room to improve or stay steady.`
-                : `${formatTonnesFromKg(footprint.carbonBudget.overBudgetKg, 2)} metric tonnes above target — focus on high-impact cuts.`}
+                ? `${formatTonnesFromKg(footprint.carbonBudget.remainingKg, 2)} t under your fair-share target — room to improve or stay steady.`
+                : `${formatTonnesFromKg(footprint.carbonBudget.overBudgetKg, 2)} t over your fair-share target — prioritize high-impact cuts (travel, home, diet).`}
             </span>
           </div>
 
           <div
-            className="budget-meter__viz"
-            aria-label={`Scale from 0 to ${formatTonnesFromKg(scaleMax, 2)} metric tonnes. Target at ${formatTonnesFromKg(targetKg, 2)} t, your footprint at ${formatTonnesFromKg(annualKg, 2)} t.`}
+            className="budget-meter__scale-cards"
+            aria-label={`Fair share ${formatTonnesFromKg(targetKg, 2)} t; your footprint ${formatTonnesFromKg(annualKg, 2)} t.`}
           >
-            <div className="budget-meter__track">
-              <div className="budget-meter__safe" style={{ width: `${targetPct}%` }} />
-              <div className="budget-meter__target-cap" style={{ left: `${targetPct}%` }} />
-              <motion.div
-                className="budget-meter__you"
-                initial={{ left: "0%" }}
-                animate={{ left: `${youPct}%` }}
-                transition={{ duration: 0.95, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  x: "-50%",
-                  y: "-50%",
-                }}
-              />
-            </div>
-            <div className="budget-meter__ticks">
-              <span>0</span>
-              <span className="budget-meter__tick-target">Target</span>
-              <span>{formatTonnesFromKg(scaleMax, 2)} t</span>
+            <div
+              className={`budget-meter__card budget-meter__card--scale ${
+                footprint.carbonBudget.status === "within"
+                  ? "budget-meter__card--gap-under"
+                  : "budget-meter__card--gap-over"
+              }`}
+            >
+              <span className="budget-meter__card-label">
+                {footprint.carbonBudget.status === "within"
+                  ? "Headroom under fair share"
+                  : "Extra vs fair share"}
+              </span>
+              <span className="budget-meter__card-value">
+                {footprint.carbonBudget.status === "within"
+                  ? formatTonnesFromKg(footprint.carbonBudget.remainingKg, 2)
+                  : formatTonnesFromKg(footprint.carbonBudget.overBudgetKg, 2)}
+              </span>
+              <span className="budget-meter__card-unit">
+                {footprint.carbonBudget.status === "within"
+                  ? "metric tonnes CO₂e / yr below target"
+                  : "metric tonnes CO₂e / yr above target"}
+              </span>
             </div>
           </div>
         </div>
@@ -229,7 +228,12 @@ export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit })
         </div>
 
         {gamify && (
-          <ToolkitTeaser gamify={gamify} variant="score" onOpenToolkit={onOpenToolkit} />
+          <ToolkitTeaser
+            gamify={gamify}
+            variant="score"
+            onOpenToolkit={onOpenToolkit}
+            onOpenPortfolio={onOpenPortfolio}
+          />
         )}
 
         <div className="step-actions">

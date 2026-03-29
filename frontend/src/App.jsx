@@ -10,6 +10,7 @@ import { Step2Score } from "./components/Step2Score";
 import { Step3Offsets } from "./components/Step3Offsets";
 import { Step4Toolkit } from "./components/Step4Toolkit";
 import { SustainableMarketplace } from "./components/SustainableMarketplace";
+import { UserPortfolioPage } from "./components/portfolio/UserPortfolioPage";
 import { useGamification } from "./hooks/useGamification";
 import "./App.css";
 
@@ -27,6 +28,7 @@ const STEPS = [
   { n: 3, label: "Sustainable Marketplace" },
   { n: 4, label: "Offsets" },
   { n: 5, label: "Toolkit" },
+  { n: 6, label: "Progress" },
 ];
 
 export default function App() {
@@ -42,6 +44,7 @@ export default function App() {
     selectedOffsetId,
     step,
     userId: user?.id,
+    serverGamification: user?.gamification,
   });
 
   useEffect(() => {
@@ -59,7 +62,11 @@ export default function App() {
       return;
     }
     document.title =
-      step === 3 ? "Sustainable marketplace — CUTthecarbon" : "CUTthecarbon";
+      step === 3
+        ? "Sustainable marketplace — CUTthecarbon"
+        : step === 6
+          ? "Your progress — CUTthecarbon"
+          : "CUTthecarbon";
   }, [user, step]);
 
   useEffect(() => {
@@ -151,7 +158,7 @@ export default function App() {
         </div>
 
         {user && (
-          <nav className="stepper stepper--five" aria-label="Wizard progress">
+          <nav className="stepper stepper--six" aria-label="Wizard progress">
             {STEPS.map((s) => (
               <button
                 key={s.n}
@@ -163,8 +170,9 @@ export default function App() {
                   if (s.n === 3 && result) setStep(3);
                   if (s.n === 4 && result) setStep(4);
                   if (s.n === 5 && result) setStep(5);
+                  if (s.n === 6) setStep(6);
                 }}
-                disabled={s.n > 1 && !result}
+                disabled={s.n !== 1 && s.n !== 6 && !result}
               >
                 <span className="stepper__num">{s.n}</span>
                 <span className="stepper__label">{s.label}</span>
@@ -200,6 +208,7 @@ export default function App() {
                   onNext={() => setStep(3)}
                   onBack={() => setStep(1)}
                   onOpenToolkit={() => setStep(5)}
+                  onOpenPortfolio={() => setStep(6)}
                 />
               )}
               {step === 3 && result && (
@@ -230,6 +239,16 @@ export default function App() {
                   result={result}
                   gamify={gamify}
                   onBack={() => setStep(4)}
+                  onOpenPortfolio={() => setStep(6)}
+                />
+              )}
+              {step === 6 && (
+                <UserPortfolioPage
+                  key="s6-portfolio"
+                  user={user}
+                  footprint={result?.footprint}
+                  gamify={gamify}
+                  onBack={() => setStep(result ? 5 : 1)}
                 />
               )}
             </AnimatePresence>

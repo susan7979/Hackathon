@@ -1,0 +1,21 @@
+/** Allowlisted achievement ids accepted from client gamify payloads. */
+module.exports.ACHIEVEMENT_IDS = new Set([
+  "first_footprint",
+  "budget_hero",
+  "benchmark",
+  "ember_streak",
+  "pledge",
+  "hub_nomad",
+  "marketplace",
+  "offsets",
+  "challenges",
+  "transit_switcher",
+  "plant_based",
+  "power_saver",
+  "community_helper",
+  "carbon_cutter",
+  "consistency_champ",
+  "early_adopter",
+  "weekly_perfect",
+  "footprint_reducer",
+]);

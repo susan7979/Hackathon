@@ -44,17 +44,19 @@ export function AuthProvider({ children }) {
   }, [refresh]);
 
   const login = useCallback(async (email, password) => {
-    const { token, user: u } = await postLogin({ email, password });
+    const { token } = await postLogin({ email, password });
     setStoredToken(token);
-    setUser(u);
-    return u;
+    const me = await getMe();
+    setUser(me.user);
+    return me.user;
   }, []);
 
   const register = useCallback(async (email, password, displayName) => {
-    const { token, user: u } = await postRegister({ email, password, displayName });
+    const { token } = await postRegister({ email, password, displayName });
     setStoredToken(token);
-    setUser(u);
-    return u;
+    const me = await getMe();
+    setUser(me.user);
+    return me.user;
   }, []);
 
   const logout = useCallback(() => {

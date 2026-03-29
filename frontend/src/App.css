@@ -839,6 +839,29 @@
   hyphens: auto;
 }
 
+.stepper--six {
+  max-width: 100%;
+  width: 100%;
+  justify-content: center;
+  padding: 0.45rem 0.3rem;
+  border-radius: var(--radius);
+}
+
+.stepper--six .stepper__item {
+  padding: 0.32rem 0.4rem 0.32rem 0.32rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 9.5rem;
+}
+
+.stepper--six .stepper__label {
+  font-size: 0.58rem;
+  line-height: 1.15;
+  white-space: normal;
+  text-align: left;
+  hyphens: auto;
+}
+
 .stepper__item {
   display: flex;
   align-items: center;
@@ -1500,7 +1523,7 @@
   margin: 0 0 0.65rem;
 }
 
-/* Carbon budget: compare cards + scale (you vs target), not a single “fill” bar */
+/* Carbon budget: compare cards + numeric scale cards (replaces old slider) */
 .budget-meter {
   margin-bottom: 1.75rem;
 }
@@ -1536,13 +1559,10 @@
   gap: 0.2rem;
 }
 
+/* Same mint inset as “Your footprint” — no separate pale target treatment */
 .budget-meter__card--target {
-  border-color: rgba(5, 150, 105, 0.35);
-  background: linear-gradient(
-    145deg,
-    rgba(16, 185, 129, 0.1),
-    rgba(16, 185, 129, 0.03)
-  );
+  background: var(--bg-input);
+  border-color: var(--border-strong);
 }
 
 .budget-meter__card-label {
@@ -1584,14 +1604,15 @@
 }
 
 .budget-meter__status--ok {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(5, 150, 105, 0.28);
+  background: var(--bg-input);
+  border-color: var(--border-strong);
   color: var(--text);
 }
 
+/* Over fair share — align with red gap card */
 .budget-meter__status--over {
-  background: rgba(251, 191, 36, 0.12);
-  border-color: rgba(217, 119, 6, 0.35);
+  background: rgba(254, 242, 242, 0.95);
+  border-color: rgba(185, 28, 28, 0.38);
   color: var(--text);
 }
 
@@ -1599,6 +1620,11 @@
   flex-shrink: 0;
   font-size: 1rem;
   line-height: 1.4;
+  color: var(--green-deep);
+}
+
+.budget-meter__status--over .budget-meter__status-icon {
+  color: #b91c1c;
 }
 
 .budget-meter__status > span:not(.budget-meter__status-icon) {
@@ -1607,73 +1633,55 @@
   font-variant-numeric: tabular-nums;
 }
 
-.budget-meter__viz {
+/* Single gap card (footprint / target stay in budget-meter__cards above) */
+.budget-meter__scale-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
   margin-top: 0.25rem;
 }
 
-.budget-meter__track {
-  position: relative;
-  height: 10px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  overflow: visible;
+.budget-meter__card--scale {
+  margin: 0;
+  min-height: 100%;
 }
 
-.budget-meter__safe {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    rgba(16, 185, 129, 0.38),
-    rgba(16, 185, 129, 0.12)
-  );
-  pointer-events: none;
+/* Extra vs fair share (over): same soft inset idea as --theme-mint / --bg-input, red family */
+.budget-meter__card--gap-over {
+  background: #ede4e4;
+  border: 1px solid rgba(127, 29, 29, 0.18);
+  box-shadow:
+    0 8px 32px rgba(127, 29, 29, 0.06),
+    0 0 0 1px rgba(127, 29, 29, 0.05);
 }
 
-.budget-meter__target-cap {
-  position: absolute;
-  top: -5px;
-  bottom: -5px;
-  width: 3px;
-  margin-left: -1.5px;
-  background: var(--green-deep);
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
-  z-index: 1;
-  pointer-events: none;
+.budget-meter__card--gap-over .budget-meter__card-label {
+  color: #7f1d1d;
 }
 
-.budget-meter__you {
-  z-index: 2;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--gradient-cta);
-  border: 2px solid var(--cream);
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.2);
-  pointer-events: none;
+.budget-meter__card--gap-over .budget-meter__card-value {
+  color: #b91c1c;
 }
 
-.budget-meter__ticks {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.45rem;
-  font-family: var(--font-numeric);
-  font-size: 0.68rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-tertiary);
+.budget-meter__card--gap-over .budget-meter__card-unit {
+  color: #991b1b;
 }
 
-.budget-meter__tick-target {
-  font-family: var(--font-numeric);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.budget-meter__card--gap-under {
+  background: rgba(236, 253, 245, 0.9);
+  border-color: rgba(22, 101, 52, 0.32);
+}
+
+.budget-meter__card--gap-under .budget-meter__card-label {
   color: var(--green-deep);
+}
+
+.budget-meter__card--gap-under .budget-meter__card-value {
+  color: #15803d;
+}
+
+.budget-meter__card--gap-under .budget-meter__card-unit {
+  color: #166534;
 }
 
 .breakdown-chart {
@@ -2264,12 +2272,39 @@ a.marketplace-card:focus-visible {
   margin-bottom: 1rem;
 }
 
+.integrated-toolkit__head-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.35rem;
+}
+
 .integrated-toolkit__title {
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 800;
-  margin: 0 0 0.35rem;
+  margin: 0;
   color: var(--cream);
+}
+
+.integrated-toolkit__progress-link {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--green-bright);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.integrated-toolkit__progress-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-border);
 }
 
 .integrated-toolkit__sub {
@@ -2298,6 +2333,20 @@ a.marketplace-card:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
+}
+
+.toolkit-teaser__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.toolkit-teaser__progress {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
 }
 
 .toolkit-teaser__stats {
@@ -2415,6 +2464,11 @@ a.marketplace-card:focus-visible {
 .hub-challenge__hint {
   color: var(--text-tertiary);
   font-weight: 500;
+}
+
+.hub-challenge__xp {
+  color: var(--green-bright);
+  font-weight: 600;
 }
 
 .hub-streak {

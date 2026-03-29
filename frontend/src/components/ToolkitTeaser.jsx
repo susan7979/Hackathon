@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
-/** Compact strip + CTA to open the toolkit (step 4) or scroll to #carbon-toolkit when embedded */
-export function ToolkitTeaser({ gamify, variant = "default", onOpenToolkit }) {
+/** Compact strip + CTA to open the toolkit (step 5) or scroll to #carbon-toolkit when embedded */
+export function ToolkitTeaser({ gamify, variant = "default", onOpenToolkit, onOpenPortfolio }) {
   const n = (gamify.badges || []).length;
   const lvl = gamify.level ?? 1;
   const txp = Math.round(gamify.totalXp ?? 0);
@@ -31,13 +31,24 @@ export function ToolkitTeaser({ gamify, variant = "default", onOpenToolkit }) {
           <span title="Experience points">{txp} XP</span>
           <span title="Badges unlocked">{n} badges</span>
         </div>
-        <button
-          type="button"
-          className="btn-cta btn-cta--small toolkit-teaser__btn"
-          onClick={handleOpen}
-        >
-          {onOpenToolkit ? "Open toolkit →" : "Open full toolkit ↓"}
-        </button>
+        <div className="toolkit-teaser__actions">
+          {onOpenPortfolio && (
+            <button
+              type="button"
+              className="btn-ghost toolkit-teaser__progress"
+              onClick={onOpenPortfolio}
+            >
+              Your progress
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn-cta btn-cta--small toolkit-teaser__btn"
+            onClick={handleOpen}
+          >
+            {onOpenToolkit ? "Open toolkit →" : "Open full toolkit ↓"}
+          </button>
+        </div>
       </div>
       <p className="toolkit-teaser__hint">
         {onOpenToolkit

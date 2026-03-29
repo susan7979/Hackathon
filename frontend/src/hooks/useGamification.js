@@ -5,17 +5,31 @@ import {
   evaluateAchievementStars,
   LEGACY_BADGE_STARS,
   totalXpFromAchievementStars,
+  totalXpFromAchievementStarsExcept,
 } from "../data/xpAchievements";
-import { levelFromTotalXp, streakXpMultiplier } from "../utils/xpLevel";
-import { submitGamifyXp } from "../api";
+import { WEEKLY_CHALLENGE_POOL, getChallengeDefById } from "../data/weeklyChallengePool";
+import { levelFromTotalXp, streakXpMultiplier, applyStreakBonus } from "../utils/xpLevel";
+import { replaceCompletedChallengePool, buildWeeklyChallengeRows } from "../utils/portfolioBusinessLogic";
+import { submitGamificationState } from "../api";
 
-const KEY = "cfn-gamify-v2";
+const LEGACY_KEY = "cfn-gamify-v2";
+const ANON_KEY = "cfn-gamify-v2-anon";
+
+/** Per-user localStorage so multiple accounts on one browser do not share XP/badges. */
+export function getGamifyStorageKey(userId) {
+  if (userId != null && userId !== "") return `cfn-gamify-v2-u-${String(userId)}`;
+  return ANON_KEY;
+}
+
+/* Weekly challenges: four IDs per ISO week in `weeklySlots`, completion flags in `weeklyDone`,
+   and awarded amounts in `xpWeeklyClaims`. New weeks pick from the pool while avoiding last week’s
+   IDs when possible (`replaceCompletedChallengePool`). */
 
 function today() {
   return new Date().toDateString();
 }
 
-function isoWeekKey(d = new Date()) {
+export function isoWeekKey(d = new Date()) {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const day = t.getUTCDay() || 7;
   t.setUTCDate(t.getUTCDate() + 4 - day);
@@ -24,10 +38,18 @@ function isoWeekKey(d = new Date()) {
   return `${t.getUTCFullYear()}-W${String(w).padStart(2, "0")}`;
 }
 
-function load() {
+function loadFromKey(key) {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
-    return migrate(raw);
+    let raw = localStorage.getItem(key);
+    if (key === ANON_KEY && (!raw || raw === "{}")) {
+      const legacy = localStorage.getItem(LEGACY_KEY);
+      if (legacy && legacy !== "{}" && legacy.trim() !== "") {
+        localStorage.setItem(ANON_KEY, legacy);
+        localStorage.removeItem(LEGACY_KEY);
+        raw = legacy;
+      }
+    }
+    return migrate(JSON.parse(raw || "{}"));
   } catch {
     return {};
   }
@@ -39,6 +61,8 @@ function migrate(raw) {
   if (!out.achievementStars) out.achievementStars = {};
   if (!out.xpWeeklyClaims) out.xpWeeklyClaims = {};
   if (!out.hubTabs) out.hubTabs = [];
+  if (!out.weeklySlots) out.weeklySlots = {};
+  if (!out.weeklyDone) out.weeklyDone = {};
   if (out.pledgeCount == null) out.pledgeCount = 0;
   if (out.marketplaceVisits == null) out.marketplaceVisits = 0;
   if (out.maxStreak == null) out.maxStreak = 0;
@@ -51,12 +75,20 @@ function migrate(raw) {
       }
     }
   }
+  const wd = { ...(out.weeklyDone || {}) };
+  for (const [wk, week] of Object.entries(out.xpWeeklyClaims || {})) {
+    if (!week || typeof week !== "object") continue;
+    const row = { ...(wd[wk] || {}) };
+    for (const id of Object.keys(week)) row[id] = true;
+    wd[wk] = row;
+  }
+  out.weeklyDone = wd;
   return out;
 }
 
-function savePersist(data) {
+function saveToKey(key, data) {
   const { completedChallenges: _c, ...persist } = data;
-  localStorage.setItem(KEY, JSON.stringify(persist));
+  localStorage.setItem(key, JSON.stringify(persist));
 }
 
 function sumWeeklyClaims(xpWeeklyClaims) {
@@ -69,15 +101,35 @@ function sumWeeklyClaims(xpWeeklyClaims) {
   return s;
 }
 
-const CHALLENGE_BASE_XP = 22;
+/** Ensures four challenge IDs exist for the ISO week (rotates pool vs previous week). */
+function ensureWeeklySlotsForWeek(prev, wk, storageKey) {
+  if (prev.weeklySlots?.[wk]?.length >= 4) return prev;
+  const keys = Object.keys(prev.weeklySlots || {}).sort();
+  const prevWk = keys.filter((k) => k !== wk).pop();
+  const prevIds = prevWk ? prev.weeklySlots[prevWk] : [];
+  const ids = replaceCompletedChallengePool(wk, prevIds, WEEKLY_CHALLENGE_POOL, 4);
+  const next = { ...prev, weeklySlots: { ...(prev.weeklySlots || {}), [wk]: ids } };
+  if (storageKey) saveToKey(storageKey, next);
+  return next;
+}
 
 export function useGamification(footprint, options = {}) {
-  const { selectedOffsetId, step, userId } = options;
+  const { selectedOffsetId, step, userId, serverGamification } = options;
+  const userIdRef = useRef(userId);
+  useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
+
+  const savePersist = useCallback((data) => {
+    saveToKey(getGamifyStorageKey(userIdRef.current), data);
+  }, []);
+
   const [state, setState] = useState(() => ({
-    ...load(),
+    ...loadFromKey(getGamifyStorageKey(undefined)),
     completedChallenges: [],
   }));
 
+  const [weekTicker, setWeekTicker] = useState(() => isoWeekKey());
   const xpSyncRef = useRef(null);
   const prevStepRef = useRef(null);
 
@@ -85,7 +137,16 @@ export function useGamification(footprint, options = {}) {
   const streakMult = streakXpMultiplier(streak);
 
   useEffect(() => {
-    const s = load();
+    const id = setInterval(() => {
+      const n = isoWeekKey();
+      setWeekTicker((p) => (p !== n ? n : p));
+    }, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const key = getGamifyStorageKey(userId);
+    const s = loadFromKey(key);
     const d = today();
     let nextStreak = s.streak || 0;
     if (s.lastVisit !== d) {
@@ -97,17 +158,26 @@ export function useGamification(footprint, options = {}) {
     }
     setState((prev) => {
       const maxStreak = Math.max(s.maxStreak || 0, nextStreak);
-      const next = {
+      let base = {
         ...s,
         lastVisit: d,
         streak: nextStreak,
         maxStreak,
         completedChallenges: prev.completedChallenges || [],
       };
-      savePersist(next);
-      return next;
+      base = ensureWeeklySlotsForWeek(base, isoWeekKey(), key);
+      saveToKey(key, base);
+      return base;
     });
-  }, []);
+  }, [userId]);
+
+  useEffect(() => {
+    setState((prev) => {
+      const key = getGamifyStorageKey(userIdRef.current);
+      const next = ensureWeeklySlotsForWeek(prev, weekTicker, key);
+      return next === prev ? prev : next;
+    });
+  }, [weekTicker]);
 
   useEffect(() => {
     if (step === 3 && prevStepRef.current !== 3) {
@@ -121,11 +191,24 @@ export function useGamification(footprint, options = {}) {
       });
     }
     prevStepRef.current = step;
-  }, [step]);
+  }, [step, savePersist]);
 
   const weeklyChallengeCheckIns = useMemo(
     () => countChallengeCheckIns(state.xpWeeklyClaims),
     [state.xpWeeklyClaims]
+  );
+
+  const challengeXpVal = useMemo(
+    () => sumWeeklyClaims(state.xpWeeklyClaims),
+    [state.xpWeeklyClaims]
+  );
+
+  /** Basis for early_adopter tiers — excludes that achievement's XP to avoid a feedback loop. */
+  const earlyAdopterBasisXp = useMemo(
+    () =>
+      totalXpFromAchievementStarsExcept(state.achievementStars || {}, "early_adopter") +
+      challengeXpVal,
+    [state.achievementStars, challengeXpVal]
   );
 
   const achievementCtx = useMemo(() => {
@@ -137,22 +220,32 @@ export function useGamification(footprint, options = {}) {
       budgetStatus: footprint?.carbonBudget?.status,
       relativeToUs: footprint?.comparison?.relativeToUs,
       streak: state.streak || 0,
+      maxStreak: state.maxStreak || 0,
       pledgeCount: state.pledgeCount || 0,
       marketplaceVisits: state.marketplaceVisits || 0,
       hubTabsVisitedCount,
       offsetSelected: Boolean(selectedOffsetId),
       weeklyChallengeCheckIns,
+      xpWeeklyClaims: state.xpWeeklyClaims || {},
+      weeklySlots: state.weeklySlots || {},
+      weeklyDone: state.weeklyDone || {},
+      earlyAdopterBasisXp,
     });
   }, [
     footprint?.annualKgCO2e,
     footprint?.carbonBudget?.status,
     footprint?.comparison?.relativeToUs,
     state.streak,
+    state.maxStreak,
     state.pledgeCount,
     state.marketplaceVisits,
     state.hubTabs,
     weeklyChallengeCheckIns,
+    state.xpWeeklyClaims,
+    state.weeklySlots,
+    state.weeklyDone,
     selectedOffsetId,
+    earlyAdopterBasisXp,
   ]);
 
   useEffect(() => {
@@ -177,57 +270,144 @@ export function useGamification(footprint, options = {}) {
       savePersist(nextState);
       return nextState;
     });
-  }, [achievementCtx]);
+  }, [achievementCtx, savePersist]);
 
   const achievementXp = useMemo(
     () => totalXpFromAchievementStars(state.achievementStars || {}),
     [state.achievementStars]
   );
 
-  const challengeXp = useMemo(
-    () => sumWeeklyClaims(state.xpWeeklyClaims),
-    [state.xpWeeklyClaims]
-  );
-
+  const challengeXp = challengeXpVal;
   const totalXp = achievementXp + challengeXp;
   const level = levelFromTotalXp(totalXp);
+
+  const weeklyChallengeRows = useMemo(() => {
+    const wk = isoWeekKey();
+    const slots = state.weeklySlots?.[wk];
+    const ids =
+      slots?.length >= 4 ? slots : WEEKLY_CHALLENGE_POOL.slice(0, 4).map((c) => c.id);
+    return buildWeeklyChallengeRows(wk, ids, state.weeklyDone, state.xpWeeklyClaims);
+  }, [state.weeklySlots, state.weeklyDone, state.xpWeeklyClaims]);
+
+  /** Merge server-stored stars/badges (e.g. after login) without lowering local progress. */
+  const serverSyncKey = useMemo(() => {
+    if (!serverGamification) return "";
+    return JSON.stringify({
+      s: serverGamification.achievementStars || {},
+      b: serverGamification.badgesEarned || [],
+    });
+  }, [serverGamification]);
+
+  useEffect(() => {
+    if (!userId || !serverGamification) return;
+    const serverStars = serverGamification.achievementStars;
+    const serverBadges = serverGamification.badgesEarned;
+    const hasStars = serverStars && typeof serverStars === "object" && Object.keys(serverStars).length > 0;
+    const hasBadges = Array.isArray(serverBadges) && serverBadges.length > 0;
+    if (!hasStars && !hasBadges) return;
+
+    setState((prev) => {
+      const mergedStars = { ...(prev.achievementStars || {}) };
+      let starChanged = false;
+      if (hasStars) {
+        for (const [k, v] of Object.entries(serverStars)) {
+          const n = Math.min(3, Math.max(0, Math.round(Number(v)) || 0));
+          const cur = mergedStars[k] || 0;
+          const next = Math.max(cur, n);
+          if (next !== cur) {
+            mergedStars[k] = next;
+            starChanged = true;
+          }
+        }
+      }
+      const badges = new Set(prev.badges || []);
+      let badgeChanged = false;
+      if (hasBadges) {
+        for (const b of serverBadges) {
+          const id = String(b);
+          if (!badges.has(id)) {
+            badges.add(id);
+            badgeChanged = true;
+          }
+        }
+      }
+      if (!starChanged && !badgeChanged) return prev;
+      const nextState = {
+        ...prev,
+        achievementStars: starChanged ? mergedStars : prev.achievementStars,
+        badges: [...badges],
+      };
+      savePersist(nextState);
+      return nextState;
+    });
+  }, [userId, serverSyncKey, serverGamification, savePersist]);
+
+  const gamifySyncKey = useMemo(
+    () =>
+      JSON.stringify({
+        totalXp,
+        level,
+        stars: state.achievementStars || {},
+        badges: state.badges || [],
+      }),
+    [totalXp, level, state.achievementStars, state.badges]
+  );
 
   useEffect(() => {
     if (!userId) return;
     if (xpSyncRef.current) clearTimeout(xpSyncRef.current);
     xpSyncRef.current = setTimeout(() => {
-      submitGamifyXp(totalXp).catch(() => {});
+      submitGamificationState({
+        totalXp,
+        level,
+        achievementStars: { ...(state.achievementStars || {}) },
+        badgesEarned: [...(state.badges || [])],
+      }).catch(() => {});
     }, 900);
     return () => {
       if (xpSyncRef.current) clearTimeout(xpSyncRef.current);
     };
-  }, [userId, totalXp]);
+  }, [userId, gamifySyncKey, totalXp, level, state.achievementStars, state.badges]);
 
-  const toggleChallenge = useCallback(
-    (id) => {
-      setState((prev) => {
-        const done = new Set(prev.completedChallenges || []);
-        const adding = !done.has(id);
-        if (adding) done.add(id);
-        else done.delete(id);
+  const toggleChallenge = useCallback((id) => {
+    setState((prev) => {
+      const sk = getGamifyStorageKey(userIdRef.current);
+      let base = ensureWeeklySlotsForWeek(prev, isoWeekKey(), sk);
+      const wk = isoWeekKey();
+      const slots = base.weeklySlots?.[wk] || [];
+      if (!slots.includes(id)) return base === prev ? prev : base;
 
-        let next = { ...prev, completedChallenges: [...done] };
-        if (adding) {
-          const wk = isoWeekKey();
-          const week = { ...(prev.xpWeeklyClaims?.[wk] || {}) };
-          if (week[id] == null) {
-            const mult = streakXpMultiplier(prev.streak || 0);
-            const gained = Math.round(CHALLENGE_BASE_XP * mult);
-            week[id] = gained;
-            next.xpWeeklyClaims = { ...(prev.xpWeeklyClaims || {}), [wk]: week };
-          }
+      const claims = base.xpWeeklyClaims?.[wk] || {};
+      const doneWk = { ...(base.weeklyDone?.[wk] || {}) };
+      const hadClaim = claims[id] != null;
+      const wasDone = Boolean(doneWk[id] || hadClaim);
+      const adding = !wasDone;
+
+      const completedSet = new Set(base.completedChallenges || []);
+      if (adding) completedSet.add(id);
+      else completedSet.delete(id);
+
+      let next = { ...base, completedChallenges: [...completedSet] };
+
+      if (adding) {
+        doneWk[id] = true;
+        const week = { ...claims };
+        if (week[id] == null) {
+          const def = getChallengeDefById(id);
+          const baseXp = def?.baseXp ?? 22;
+          const gained = applyStreakBonus(baseXp, base.streak || 0);
+          week[id] = gained;
+          next.xpWeeklyClaims = { ...(base.xpWeeklyClaims || {}), [wk]: week };
         }
-        savePersist(next);
-        return next;
-      });
-    },
-    []
-  );
+      } else {
+        delete doneWk[id];
+      }
+
+      next.weeklyDone = { ...(base.weeklyDone || {}), [wk]: doneWk };
+      savePersist(next);
+      return next;
+    });
+  }, [savePersist]);
 
   const addPledge = useCallback((_text) => {
     const kg = 50 + Math.floor(Math.random() * 80);
@@ -241,7 +421,7 @@ export function useGamification(footprint, options = {}) {
       savePersist(next);
       return next;
     });
-  }, []);
+  }, [savePersist]);
 
   const unlockBadge = useCallback((id) => {
     setState((prev) => {
@@ -258,7 +438,7 @@ export function useGamification(footprint, options = {}) {
       savePersist(next);
       return next;
     });
-  }, []);
+  }, [savePersist]);
 
   const recordHubTab = useCallback((tabId) => {
     setState((prev) => {
@@ -269,7 +449,7 @@ export function useGamification(footprint, options = {}) {
       savePersist(next);
       return next;
     });
-  }, []);
+  }, [savePersist]);
 
   const recordMarketplaceVisit = useCallback(() => {
     setState((prev) => {
@@ -280,7 +460,7 @@ export function useGamification(footprint, options = {}) {
       savePersist(next);
       return next;
     });
-  }, []);
+  }, [savePersist]);
 
   return {
     ...state,
@@ -291,6 +471,7 @@ export function useGamification(footprint, options = {}) {
     challengeXp,
     totalXp,
     level,
+    weeklyChallengeRows,
     toggleChallenge,
     addPledge,
     unlockBadge,

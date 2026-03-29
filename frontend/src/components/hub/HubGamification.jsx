@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ACHIEVEMENT_DEFS, xpSumForStars } from "../../data/xpAchievements";
-import { MOCK_LEADERBOARD, WEEKLY_CHALLENGES } from "../../data/hubContent";
+import { MOCK_LEADERBOARD } from "../../data/hubContent";
 import { formatTonnesFromKg, UNIT_T_CO2E_YR } from "../../utils/formatEmissions";
 import { levelFromTotalXp } from "../../utils/xpLevel";
 import { getLeaderboard } from "../../api";
@@ -87,18 +87,24 @@ export function HubGamification({ footprint, gamify }) {
           </span>
         </div>
         <ul className="hub-challenge-list">
-          {WEEKLY_CHALLENGES.map((c) => (
+          {(gamify.weeklyChallengeRows || []).map((c) => (
             <li key={c.id}>
               <label className="hub-challenge">
                 <input
                   type="checkbox"
-                  checked={(gamify.completedChallenges || []).includes(c.id)}
+                  checked={Boolean(c.completed)}
                   onChange={() => gamify.toggleChallenge(c.id)}
                 />
                 <span className="hub-challenge__icon">{c.badge}</span>
                 <span>
                   <strong>{c.title}</strong>
-                  <span className="hub-challenge__hint"> · ~{c.kgHint}</span>
+                  <span className="hub-challenge__hint">
+                    {" "}
+                    · {c.estimatedCo2Label}
+                    {c.completed && c.xpReward != null ? (
+                      <span className="hub-challenge__xp"> · +{c.xpReward} XP</span>
+                    ) : null}
+                  </span>
                 </span>
               </label>
             </li>
@@ -138,7 +144,9 @@ export function HubGamification({ footprint, gamify }) {
         </div>
         {lbErr && <p className="hub-error">{lbErr}</p>}
         <ol className="hub-board">
-          {rows.map((row, i) => (
+          {rows.map((row, i) => {
+            const lbLvl = row.level != null ? row.level : levelFromTotalXp(row.totalXp || 0);
+            return (
             <li
               key={row.id}
               className={`hub-board__row ${row.isYou || row.id === "you" ? "hub-board__row--you" : ""}`}
@@ -153,12 +161,13 @@ export function HubGamification({ footprint, gamify }) {
                   </>
                 ) : (
                   <>
-                    Lv {levelFromTotalXp(row.totalXp || 0)} · {Math.round(row.totalXp || 0)} XP
+                    Lv {lbLvl} · {Math.round(row.totalXp || 0)} XP
                   </>
                 )}
               </span>
             </li>
-          ))}
+            );
+          })}
         </ol>
         {user && yourRank != null && (
           <p className="hub-note">
