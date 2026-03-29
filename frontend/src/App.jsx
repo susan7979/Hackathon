@@ -83,6 +83,7 @@ export default function App() {
         {user ? (
           <>
             <div className="app-shell__bg-app" />
+            <div className="app-shell__bg-app-deco" />
             <div className="app-shell__bg-app-grid" />
             <div className="app-shell__bg-app-vignette" />
             <div className="app-shell__grain app-shell__grain--app" />
@@ -109,9 +110,16 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="site-header__logo" aria-hidden>
-              🌱
-            </span>
+            <div className="site-header__logo-wrap">
+              <img
+                className="site-header__logo"
+                src={IMAGES.brandLogo}
+                alt=""
+                width={56}
+                height={56}
+                decoding="async"
+              />
+            </div>
             <div>
               <h1 className="site-header__title">
                 <strong className="site-header__brand-cut">CUT</strong>thecarbon

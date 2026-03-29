@@ -3,6 +3,8 @@
  * Each URL matches the step / offset topic (forest, farm, solar, landfill, plant, cookstove).
  */
 export const IMAGES = {
+  /** CUTthecarbon wordmark + hexagon (project logo) */
+  brandLogo: "/logo.png",
   hero: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Hopetoun_falls.jpg/1600px-Hopetoun_falls.jpg",
   step1:
     "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Cycling_in_Amsterdam.jpg/1200px-Cycling_in_Amsterdam.jpg",

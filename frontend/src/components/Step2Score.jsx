@@ -227,12 +227,12 @@ export function Step2Score({ footprint, breakdownMax, gamify, onNext, onBack, on
           </button>
           <motion.button
             type="button"
-            className="btn-cta btn-cta--secondary"
+            className="btn-cta"
             onClick={onNext}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Offset negotiator →
+            Continue to offsets →
           </motion.button>
         </div>
       </div>

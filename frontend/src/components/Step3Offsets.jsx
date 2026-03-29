@@ -155,7 +155,7 @@ export function Step3Offsets({
           </button>
           <motion.button
             type="button"
-            className="btn-cta btn-cta--secondary"
+            className="btn-cta"
             onClick={onNextToolkit}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

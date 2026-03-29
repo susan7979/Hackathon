@@ -40,44 +40,49 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ─── Post-login “app” theme: warm off-white + mint cards (landing unchanged) ─── */
+/* ─── Post-login app theme — CUT mockup: cream field, forest type, mint insets ─── */
 .app-shell--app {
   color-scheme: light;
-  --bg-root: #f5f5f0;
-  --bg-raised: #eeefe8;
-  --bg-card: rgba(236, 253, 245, 0.96);
-  --bg-card-solid: #ecfdf5;
-  --bg-input: rgba(15, 23, 42, 0.07);
-  --text: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #64748b;
-  --green-bright: #059669;
-  --green-neon: #10b981;
-  --green-mid: #047857;
-  --green-deep: #065f46;
-  --green-ink: #022c22;
-  /* Same role as “light headline” on dark UI — here = primary text on white */
-  --cream: #0f172a;
-  --cream-dim: rgba(16, 185, 129, 0.08);
-  --accent: var(--green-neon);
-  --accent-bright: var(--green-bright);
-  --accent-muted: rgba(16, 185, 129, 0.12);
-  --accent-border: rgba(5, 150, 105, 0.35);
-  --accent-glow: rgba(16, 185, 129, 0.22);
-  --border: rgba(15, 23, 42, 0.08);
-  --border-strong: rgba(15, 23, 42, 0.14);
-  --ring-track: rgba(16, 185, 129, 0.1);
-  --ring-start: #047857;
-  --ring-end: #34d399;
+  --theme-forest: #1a5336;
+  --theme-accent: #4caf50;
+  --theme-mint: #e1ede4;
+  --theme-cream: #f5f7f2;
+  --radius: 22px;
+  --radius-sm: 16px;
+  --bg-root: var(--theme-cream);
+  --bg-raised: #eef1ea;
+  --bg-card: #ffffff;
+  --bg-card-solid: #ffffff;
+  --bg-input: var(--theme-mint);
+  --text: #2d3e35;
+  --text-secondary: #5c6d64;
+  --text-tertiary: #7a8a82;
+  --green-bright: var(--theme-accent);
+  --green-neon: #66bb6a;
+  --green-mid: #388e3c;
+  --green-deep: var(--theme-forest);
+  --green-ink: #0d2818;
+  --cream: var(--theme-forest);
+  --cream-dim: rgba(76, 175, 80, 0.1);
+  --accent: var(--theme-accent);
+  --accent-bright: var(--theme-accent);
+  --accent-muted: rgba(76, 175, 80, 0.14);
+  --accent-border: rgba(26, 83, 54, 0.22);
+  --accent-glow: rgba(76, 175, 80, 0.18);
+  --border: rgba(26, 83, 54, 0.1);
+  --border-strong: rgba(26, 83, 54, 0.14);
+  --ring-track: rgba(26, 83, 54, 0.1);
+  --ring-start: #a5d6a7;
+  --ring-end: var(--theme-forest);
   --shadow-card:
-    0 4px 24px rgba(15, 23, 42, 0.05),
-    0 0 0 1px rgba(5, 80, 60, 0.07) inset;
-  --shadow-float: 0 20px 50px rgba(15, 23, 42, 0.08);
-  --glow-accent: 0 0 32px rgba(16, 185, 129, 0.12);
-  --glow-strong: 0 0 48px rgba(16, 185, 129, 0.08);
-  --gradient-cta: linear-gradient(105deg, #6ee7b7 0%, #34d399 45%, #059669 100%);
-  --gradient-surface: linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, transparent 55%);
-  --gradient-border: linear-gradient(135deg, #34d399, #059669);
+    0 8px 32px rgba(26, 83, 54, 0.07),
+    0 0 0 1px rgba(26, 83, 54, 0.06);
+  --shadow-float: 0 24px 48px rgba(26, 83, 54, 0.08);
+  --glow-accent: 0 4px 24px rgba(76, 175, 80, 0.12);
+  --glow-strong: 0 4px 20px rgba(26, 83, 54, 0.06);
+  --gradient-cta: linear-gradient(105deg, #81c784 0%, var(--theme-accent) 42%, #2e7d32 100%);
+  --gradient-surface: linear-gradient(145deg, rgba(76, 175, 80, 0.1) 0%, transparent 55%);
+  --gradient-border: linear-gradient(135deg, #81c784, var(--theme-forest));
   background: var(--bg-root);
   color: var(--text);
 }
@@ -86,32 +91,45 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 100% 65% at 50% -18%, rgba(16, 185, 129, 0.1), transparent 58%),
-    radial-gradient(ellipse 70% 55% at 105% 15%, rgba(120, 180, 140, 0.07), transparent 52%),
-    radial-gradient(ellipse 55% 45% at -5% 45%, rgba(140, 160, 130, 0.05), transparent 48%),
-    radial-gradient(ellipse 90% 55% at 50% 108%, rgba(5, 100, 72, 0.06), transparent 58%),
-    linear-gradient(175deg, #f7f7f2 0%, #f5f5f0 45%, #eceee6 100%);
-  animation: app-aurora 28s ease-in-out infinite alternate;
+    radial-gradient(ellipse 90% 55% at 12% 18%, rgba(129, 199, 132, 0.14), transparent 58%),
+    radial-gradient(ellipse 70% 50% at 92% 12%, rgba(165, 214, 167, 0.12), transparent 52%),
+    radial-gradient(ellipse 55% 40% at 50% 100%, rgba(46, 125, 50, 0.06), transparent 55%),
+    linear-gradient(180deg, #f7faf4 0%, var(--theme-cream) 42%, #eef2eb 100%);
 }
 
-@keyframes app-aurora {
-  0% {
-    filter: hue-rotate(-3deg) saturate(1.02);
-  }
-  100% {
-    filter: hue-rotate(5deg) saturate(1.06);
-  }
+.app-shell__bg-app-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Soft rolling hills at bottom (organic accent) */
+.app-shell__bg-app-deco::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48%;
+  background:
+    radial-gradient(ellipse 95% 52% at 18% 100%, rgba(129, 199, 132, 0.32), transparent 58%),
+    radial-gradient(ellipse 90% 48% at 82% 100%, rgba(76, 175, 80, 0.22), transparent 55%),
+    radial-gradient(ellipse 120% 38% at 50% 100%, rgba(46, 125, 50, 0.14), transparent 52%);
+  filter: saturate(1.05);
+  opacity: 0.85;
+  mask-image: linear-gradient(180deg, transparent 0%, black 38%);
 }
 
 .app-shell__bg-app-grid {
   position: absolute;
   inset: 0;
-  opacity: 0.45;
+  opacity: 0.22;
   background-image:
-    linear-gradient(rgba(60, 70, 55, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(60, 70, 55, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(26, 83, 54, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 83, 54, 0.05) 1px, transparent 1px);
   background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, black 22%, transparent 74%);
+  mask-image: radial-gradient(ellipse 88% 72% at 50% 42%, black 18%, transparent 72%);
   pointer-events: none;
 }
 
@@ -119,53 +137,299 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 100% 100% at 50% 50%,
-    transparent 52%,
-    rgba(210, 212, 200, 0.4) 100%
+    ellipse 100% 100% at 50% 45%,
+    transparent 40%,
+    rgba(245, 247, 242, 0.55) 100%
   );
   pointer-events: none;
 }
 
 .app-shell__grain--app {
-  opacity: 0.04;
+  opacity: 0.035;
   mix-blend-mode: multiply;
 }
 
 .app-shell--app .auth-bar__logout-btn {
   color: var(--text);
-  background: rgba(15, 23, 42, 0.05);
+  background: #fff;
+  border: 1px solid var(--border-strong);
 }
 
 .app-shell--app .auth-bar__profile {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.1));
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(26, 83, 54, 0.05);
+}
+
+.app-shell--app .auth-bar__avatar {
+  background: var(--theme-forest);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 2px 12px rgba(26, 83, 54, 0.2);
 }
 
 .app-shell--app .stepper {
-  background: rgba(55, 75, 62, 0.06);
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+  box-shadow: var(--glow-strong);
+}
+
+.app-shell--app .stepper__item:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.app-shell--app .stepper__item--active {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 14px rgba(26, 83, 54, 0.07);
+}
+
+.app-shell--app .stepper__num {
+  background: #f0f4ef;
+  color: var(--text-tertiary);
+  box-shadow: inset 0 0 0 1px rgba(26, 83, 54, 0.1);
+}
+
+.app-shell--app .stepper__item--active .stepper__num,
+.app-shell--app .stepper__item--done:not(.stepper__item--active) .stepper__num {
+  background: var(--theme-forest);
+  color: #fff;
+  box-shadow: none;
+}
+
+.app-shell--app .stepper__label {
+  color: var(--text-secondary);
+}
+
+.app-shell--app .stepper__item--active .stepper__label {
+  color: var(--theme-forest);
+  font-weight: 800;
 }
 
 .app-shell--app .site-header__title,
 .app-shell--app .site-header__brand-cut {
-  background: linear-gradient(92deg, #052e22 0%, #0a3d2e 38%, #14532d 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  color: var(--theme-forest);
+}
+
+.app-shell--app .glass-card,
+.app-shell--app .negotiator-card {
+  background: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(26, 83, 54, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
 .app-shell--app .glass-card::before,
 .app-shell--app .negotiator-card::before {
   background: linear-gradient(
-    160deg,
-    rgba(16, 185, 129, 0.28) 0%,
-    rgba(5, 150, 105, 0.12) 38%,
-    transparent 62%
+    165deg,
+    rgba(129, 199, 132, 0.2) 0%,
+    rgba(26, 83, 54, 0.06) 42%,
+    transparent 65%
   );
+  opacity: 0.85;
+}
+
+.app-shell--app .step-form__title {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .input-block__icon {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.app-shell--app .input-block__title-text {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .ring-gauge__value {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  color: var(--theme-forest);
+}
+
+.app-shell--app .tier-badge {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .tier-badge--good {
+  border-color: rgba(76, 175, 80, 0.35);
+  box-shadow: none;
+}
+
+.app-shell--app .tier-badge--good .tier-badge__grade {
+  background: var(--theme-forest);
+  color: #fff;
+}
+
+.app-shell--app .tier-badge strong {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .mini-stat {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .mini-stat__val {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .compare-card {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .compare-card:hover {
+  border-color: rgba(76, 175, 80, 0.35);
+  box-shadow: 0 8px 24px rgba(26, 83, 54, 0.08);
+}
+
+.app-shell--app .compare-card h4 {
+  color: var(--text-secondary);
+}
+
+.app-shell--app .compare-card__num {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .section-heading {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .budget-meter__card {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .breakdown-bars__val {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .ai-tip {
+  background: linear-gradient(135deg, var(--theme-mint), rgba(129, 199, 132, 0.35));
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.app-shell--app .offset-card {
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .offset-card:hover {
+  border-color: rgba(76, 175, 80, 0.4);
+}
+
+.app-shell--app .offset-card--selected {
+  border-color: var(--theme-accent);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2), 0 8px 28px rgba(26, 83, 54, 0.1);
+}
+
+.app-shell--app .offset-card__body {
+  background: var(--theme-mint);
+}
+
+.app-shell--app .offset-card__ribbon {
+  background: var(--theme-forest);
+  color: #fff;
+}
+
+.app-shell--app .offset-card__check {
+  background: rgba(76, 175, 80, 0.12);
+  color: var(--theme-forest);
+  border-top-color: var(--border);
+}
+
+.app-shell--app .toolkit-teaser {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .toolkit-teaser__stats {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .hub-tab {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .hub-tab--active {
+  background: #fff;
+  border-color: rgba(76, 175, 80, 0.45);
+  color: var(--theme-forest);
+}
+
+.app-shell--app .hub-card {
+  background: var(--theme-mint);
+  border: 1px solid var(--border);
+}
+
+.app-shell--app .integrated-toolkit__title {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .integrated-toolkit {
+  border-top-color: var(--border);
+}
+
+/* Only filled primary CTAs get white label — don’t override .btn-cta--secondary (would hide text on light bg) */
+.app-shell--app .btn-cta:not(.btn-cta--secondary) {
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(46, 125, 50, 0.28);
+}
+
+.app-shell--app .btn-cta:not(.btn-cta--secondary):hover:not(:disabled) {
+  box-shadow: 0 10px 32px rgba(46, 125, 50, 0.34);
+}
+
+/* Outline secondary on app: borderless so it sits flush on the white card (offsets “Carbon toolkit”) */
+.app-shell--app .btn-cta.btn-cta--secondary {
+  color: var(--theme-forest);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.app-shell--app .btn-cta.btn-cta--secondary:hover:not(:disabled) {
+  background: var(--theme-mint);
+  filter: none;
 }
 
 .app-shell--app .error-banner {
   color: #b91c1c;
   background: rgba(248, 113, 113, 0.12);
+}
+
+.app-shell--app .tier-badge--mid .tier-badge__grade,
+.app-shell--app .tier-badge--high .tier-badge__grade {
+  color: #1e293b;
+}
+
+.app-shell--app .hub-heat__label,
+.app-shell--app .hub-heat__val {
+  color: var(--theme-forest);
+}
+
+.app-shell--app .ring-gauge svg {
+  filter: drop-shadow(0 4px 14px rgba(26, 83, 54, 0.15));
+}
+
+.app-shell--app .slider-field input[type="range"]::-webkit-slider-thumb {
+  border-color: #fff;
+}
+
+.app-shell--app .slider-field input[type="range"]::-moz-range-thumb {
+  border-color: #fff;
 }
 
 /* ─── Header ─── */
@@ -472,16 +736,29 @@
   font-size: 0.95rem;
 }
 
+/* PNG has large white margins; scale inside a clipped box. No card frame — multiply blends white matting into the page */
+.site-header__logo-wrap {
+  width: 5rem;
+  height: 5rem;
+  flex-shrink: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .site-header__logo {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: var(--radius-sm);
-  display: grid;
-  place-items: center;
-  font-size: 1.6rem;
-  background: var(--gradient-surface);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--glow-accent);
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  transform: scale(2.45);
+  transform-origin: center center;
+  mix-blend-mode: multiply;
 }
 
 .site-header__title {
@@ -1390,6 +1667,18 @@
 
 .step-actions--single {
   justify-content: flex-start;
+}
+
+/* Primary “next” in a two-button row: green gradient pill (matches Continue to offsets) */
+.step-actions .btn-cta:not(.btn-cta--small):not(.btn-cta--secondary) {
+  width: auto;
+  margin-top: 0;
+  padding: 0.85rem 1.5rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 0.92rem;
+  font-weight: 800;
+  border-radius: var(--radius-pill);
 }
 
 /* ─── Negotiator ─── */
