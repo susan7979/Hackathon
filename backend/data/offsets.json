@@ -1,0 +1,50 @@
+[
+  {
+    "id": "reforest-standard",
+    "name": "Verified Reforestation (Gold Standard)",
+    "type": "reforestation",
+    "costUsdPerTonne": 14,
+    "credibility": 0.88,
+    "description": "Forest restoration projects with third-party verification; durable carbon removal over decades."
+  },
+  {
+    "id": "soil-carbon",
+    "name": "Regenerative Agriculture / Soil Carbon",
+    "type": "soil",
+    "costUsdPerTonne": 22,
+    "credibility": 0.82,
+    "description": "Improves soil health and sequesters carbon; co-benefits for food systems."
+  },
+  {
+    "id": "renewable-lec",
+    "name": "Renewable Energy (LECs / wind-solar)",
+    "type": "renewable_energy",
+    "costUsdPerTonne": 8,
+    "credibility": 0.72,
+    "description": "Displaces fossil generation; lower cost per tonne, avoidance-based."
+  },
+  {
+    "id": "methane-capture",
+    "name": "Methane Capture (landfill / digesters)",
+    "type": "methane",
+    "costUsdPerTonne": 12,
+    "credibility": 0.85,
+    "description": "High immediate warming impact reduction; strong additionality in many regions."
+  },
+  {
+    "id": "direct-air-lite",
+    "name": "Engineered Removal Pilot (DAC / biochar blend)",
+    "type": "removal",
+    "costUsdPerTonne": 180,
+    "credibility": 0.78,
+    "description": "Durable removal; expensive but high permanence—good for residual emissions."
+  },
+  {
+    "id": "community-stoves",
+    "name": "Clean Cookstoves (community health)",
+    "type": "health_co_benefit",
+    "costUsdPerTonne": 10,
+    "credibility": 0.75,
+    "description": "Reduces indoor air pollution and woodfuel emissions; strong social co-benefits."
+  }
+]

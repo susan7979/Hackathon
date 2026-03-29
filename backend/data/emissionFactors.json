@@ -1,0 +1,31 @@
+{
+  "commuteKgPerKm": {
+    "car": 0.21,
+    "hybrid_ev": 0.08,
+    "transit": 0.05,
+    "bike": 0,
+    "walk": 0,
+    "remote": 0
+  },
+  "flightKgPerTrip": {
+    "shortHaul": 250,
+    "longHaul": 1100
+  },
+  "dietAnnualKg": {
+    "meat_heavy": 3600,
+    "average": 2500,
+    "vegetarian": 1700,
+    "vegan": 1500
+  },
+  "shoppingAnnualKg": {
+    "low": 500,
+    "medium": 1200,
+    "high": 2500
+  },
+  "electricityKgPerKwh": 0.42,
+  "benchmarks": {
+    "globalAverageAnnualKg": 4700,
+    "usAverageAnnualKg": 14900,
+    "parisAlignedPersonalAnnualKg": 2500
+  }
+}
