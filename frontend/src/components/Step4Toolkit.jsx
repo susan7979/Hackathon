@@ -16,7 +16,7 @@ export function Step4Toolkit({ habits, footprint, result, gamify, onBack }) {
         result={result}
         gamify={gamify}
       />
-      <div className="step-actions step-actions--toolkit-footer">
+      <div className="step-actions step-actions--toolkit-footer step-actions--wrap">
         <button type="button" className="btn-ghost" onClick={onBack}>
           ← Back to offsets
         </button>

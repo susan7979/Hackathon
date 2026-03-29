@@ -33,11 +33,11 @@ export const OFFSET_CARD_IMAGES = {
 /** If a Commons URL fails (network / block), fall back to Picsum */
 export const OFFSET_IMAGE_FALLBACK = "https://picsum.photos/id/28/800/480";
 
-/** Bar colors — bold green family + contrast */
+/** Category colors — emissions breakdown donut + bars (mockup palette) */
 export const CATEGORY_COLORS = {
-  commute: "#39ff88",
-  flights: "#f472b6",
-  diet: "#4ade80",
-  shopping: "#fbbf24",
-  home: "#22d3ee",
+  commute: "#76C78F",
+  flights: "#F9D462",
+  diet: "#F48B94",
+  shopping: "#90C460",
+  home: "#5BB0D4",
 };

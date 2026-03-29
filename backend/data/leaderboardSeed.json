@@ -1,7 +1,7 @@
 [
-  { "id": "seed-1", "name": "Alex K.", "annualKg": 4200, "avatar": "🌿" },
-  { "id": "seed-2", "name": "Jordan M.", "annualKg": 5100, "avatar": "🚲" },
-  { "id": "seed-3", "name": "Sam R.", "annualKg": 6800, "avatar": "♻️" },
-  { "id": "seed-4", "name": "Taylor P.", "annualKg": 8200, "avatar": "🌍" },
-  { "id": "seed-5", "name": "Riley D.", "annualKg": 9400, "avatar": "🌱" }
+  { "id": "seed-1", "name": "Alex K.", "annualKg": 4200, "avatar": "🌿", "totalXp": 4200 },
+  { "id": "seed-2", "name": "Jordan M.", "annualKg": 5100, "avatar": "🚲", "totalXp": 5100 },
+  { "id": "seed-3", "name": "Sam R.", "annualKg": 6800, "avatar": "♻️", "totalXp": 3600 },
+  { "id": "seed-4", "name": "Taylor P.", "annualKg": 8200, "avatar": "🌍", "totalXp": 2800 },
+  { "id": "seed-5", "name": "Riley D.", "annualKg": 9400, "avatar": "🌱", "totalXp": 1900 }
 ]

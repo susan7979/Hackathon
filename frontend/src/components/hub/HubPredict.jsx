@@ -162,8 +162,11 @@ export function HubPredict({ habits, footprint }) {
           <p className="hub-sim-result">
             Scenario ≈ <strong>{formatTonnesFromKg(simResult.annualKgCO2e, 2)}</strong> metric tonnes
             CO₂e/yr vs your baseline <strong>{formatTonnesFromKg(baselineKg, 2)}</strong> t (
-            {simResult.annualKgCO2e - baselineKg > 0 ? "+" : ""}
-            {formatTonnesFromKg(simResult.annualKgCO2e - baselineKg, 2)} t)
+            <strong>
+              {simResult.annualKgCO2e - baselineKg > 0 ? "+" : ""}
+              {formatTonnesFromKg(simResult.annualKgCO2e - baselineKg, 2)} t
+            </strong>
+            )
           </p>
         )}
       </section>

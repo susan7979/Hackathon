@@ -1,10 +1,10 @@
 /** Mock community leaderboard — lower annual CO₂e (stored as kg in API) ranks higher */
 export const MOCK_LEADERBOARD = [
-  { id: "1", name: "Alex K.", annualKg: 4200, avatar: "🌿" },
-  { id: "2", name: "Jordan M.", annualKg: 5100, avatar: "🚲" },
-  { id: "3", name: "Sam R.", annualKg: 6800, avatar: "♻️" },
-  { id: "4", name: "Taylor P.", annualKg: 8200, avatar: "🌍" },
-  { id: "5", name: "Riley D.", annualKg: 9400, avatar: "🌱" },
+  { id: "1", name: "Alex K.", annualKg: 4200, avatar: "🌿", totalXp: 4200 },
+  { id: "2", name: "Jordan M.", annualKg: 5100, avatar: "🚲", totalXp: 5100 },
+  { id: "3", name: "Sam R.", annualKg: 6800, avatar: "♻️", totalXp: 3600 },
+  { id: "4", name: "Taylor P.", annualKg: 8200, avatar: "🌍", totalXp: 2800 },
+  { id: "5", name: "Riley D.", annualKg: 9400, avatar: "🌱", totalXp: 1900 },
 ];
 
 export const WEEKLY_CHALLENGES = [
@@ -34,14 +34,8 @@ export const WEEKLY_CHALLENGES = [
   },
 ];
 
-export const ACHIEVEMENTS = [
-  { id: "first_calc", title: "First footprint", desc: "Completed your first estimate", icon: "📊" },
-  { id: "under_budget", title: "Budget hero", desc: "Came in under the demo carbon budget", icon: "🎯" },
-  { id: "below_us", title: "Below US avg", desc: "Lower than illustrative US benchmark", icon: "🇺🇸" },
-  { id: "streak_3", title: "3-day streak", desc: "Opened the app 3 days in a row", icon: "🔥" },
-  { id: "pledge", title: "Pledger", desc: "Posted a public-style pledge", icon: "✋" },
-  { id: "hub_explorer", title: "Hub explorer", desc: "Opened the Impact Hub", icon: "🧭" },
-];
+/** @deprecated Use ACHIEVEMENT_DEFS in xpAchievements.js (stars + XP). Kept for any legacy imports. */
+export const ACHIEVEMENTS = [];
 
 export const LOCAL_INITIATIVES = [
   {

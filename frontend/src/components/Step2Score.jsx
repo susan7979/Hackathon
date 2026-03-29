@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { RingGauge } from "./RingGauge";
 import { ToolkitTeaser } from "./ToolkitTeaser";
+import { BreakdownDonut } from "./BreakdownDonut";
 import { CATEGORY_COLORS } from "../constants";
 import { formatTonnesFromKg, UNIT_METRIC_TONNES_YR } from "../utils/formatEmissions";
+
+const BREAKDOWN_ORDER = ["commute", "flights", "diet", "shopping", "home"];
 
 const tierCopy = {
   below_average: {
@@ -22,7 +25,7 @@ const tierCopy = {
   },
 };
 
-export function Step2Score({ footprint, breakdownMax, gamify, onNext, onBack, onOpenToolkit }) {
+export function Step2Score({ footprint, gamify, onNext, onBack, onOpenToolkit }) {
   if (!footprint) return null;
 
   const tier = tierCopy[footprint.comparison?.relativeToUs] || tierCopy.average;
@@ -32,7 +35,11 @@ export function Step2Score({ footprint, breakdownMax, gamify, onNext, onBack, on
   const scaleMax = Math.max(annualKg, targetKg, 1) * 1.06;
   const targetPct = Math.min(100, (targetKg / scaleMax) * 100);
   const youPct = Math.min(100, (annualKg / scaleMax) * 100);
-  const entries = Object.entries(footprint.breakdownKg || {});
+  const breakdownSlices = BREAKDOWN_ORDER.map((key) => ({
+    key,
+    kg: footprint.breakdownKg?.[key] ?? 0,
+    color: CATEGORY_COLORS[key] || "#94a3b8",
+  }));
 
   return (
     <motion.section
@@ -188,33 +195,37 @@ export function Step2Score({ footprint, breakdownMax, gamify, onNext, onBack, on
           </div>
         </div>
 
-        <div className="breakdown-chart">
-          <h3 className="section-heading">Emissions by category</h3>
-          <ul className="breakdown-bars">
-            {entries.map(([key, val], i) => (
-              <li key={key}>
-                <div className="breakdown-bars__row">
-                  <span className="breakdown-bars__name">{key}</span>
-                  <span className="breakdown-bars__val">
-                    {formatTonnesFromKg(val, 2)} t
+        <div className="emissions-breakdown">
+          <h3 className="emissions-breakdown__title">Emissions breakdown</h3>
+          <p className="emissions-breakdown__sub">
+            Share of your annual footprint by category (metric tonnes CO₂e).
+          </p>
+          <div className="emissions-breakdown__grid">
+            <ul className="emissions-breakdown__list">
+              {breakdownSlices.map(({ key, kg, color }, i) => (
+                <motion.li
+                  key={key}
+                  className="emissions-breakdown__row"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * i, duration: 0.35 }}
+                >
+                  <span
+                    className="emissions-breakdown__check"
+                    style={{ background: color }}
+                    aria-hidden
+                  >
+                    ✓
                   </span>
-                </div>
-                <div className="breakdown-bars__track">
-                  <motion.div
-                    className="breakdown-bars__fill"
-                    style={{ background: CATEGORY_COLORS[key] || "#94a3b8" }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(val / breakdownMax) * 100}%` }}
-                    transition={{
-                      duration: 0.85,
-                      delay: 0.12 * i,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <span className="emissions-breakdown__name">{key}</span>
+                  <span className="emissions-breakdown__val">{formatTonnesFromKg(kg, 2)} t</span>
+                </motion.li>
+              ))}
+            </ul>
+            <div className="emissions-breakdown__chart-wrap">
+              <BreakdownDonut slices={breakdownSlices} totalKg={footprint.annualKgCO2e} size={300} />
+            </div>
+          </div>
         </div>
 
         {gamify && (
@@ -232,7 +243,7 @@ export function Step2Score({ footprint, breakdownMax, gamify, onNext, onBack, on
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Continue to offsets →
+            Continue to marketplace →
           </motion.button>
         </div>
       </div>

@@ -20,6 +20,7 @@ exports.getLeaderboard = (req, res) => {
     id: s.id,
     name: s.name,
     annualKg: s.annualKg,
+    totalXp: s.totalXp != null ? s.totalXp : 0,
     avatar: s.avatar,
     isYou: false,
   }));
@@ -31,6 +32,7 @@ exports.getLeaderboard = (req, res) => {
       id: u.id,
       name: u.displayName,
       annualKg: u.annualKgCO2e,
+      totalXp: u.totalXp != null ? u.totalXp : 0,
       avatar: "⭐",
       isYou: Boolean(req.user && req.user.sub === u.id),
     }));
@@ -49,11 +51,34 @@ exports.getLeaderboard = (req, res) => {
     yourRank = idx === -1 ? null : idx + 1;
   }
 
+  const byXp = [...entries].sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
+  let yourRankXp = null;
+  if (req.user) {
+    const ix = byXp.findIndex((e) => e.id === req.user.sub);
+    yourRankXp = ix === -1 ? null : ix + 1;
+  }
+
   res.json({
     entries,
     yourRank,
+    yourRankXp,
     yourId: req.user ? req.user.sub : null,
     total: entries.length,
+  });
+};
+
+exports.postSubmitXp = (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Authentication required" });
+  const xp = req.body?.totalXp;
+  if (xp == null || Number.isNaN(Number(xp))) {
+    return res.status(400).json({ error: "totalXp is required (number)" });
+  }
+  const updated = userStore.updateXp(req.user.sub, xp);
+  if (!updated) return res.status(404).json({ error: "User not found" });
+  res.json({
+    ok: true,
+    totalXp: updated.totalXp,
+    updatedAt: updated.xpUpdatedAt,
   });
 };
 

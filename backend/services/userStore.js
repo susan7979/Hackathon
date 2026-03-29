@@ -49,6 +49,7 @@ async function createUser({ email, password, displayName }) {
     displayName: String(displayName || "").trim().slice(0, 80),
     annualKgCO2e: null,
     updatedAt: null,
+    totalXp: 0,
   };
   users.push(user);
   writeAll(users);
@@ -73,12 +74,24 @@ function updateFootprint(userId, annualKgCO2e) {
   return users[i];
 }
 
+function updateXp(userId, totalXp) {
+  const users = readAll();
+  const i = users.findIndex((u) => u.id === userId);
+  if (i === -1) return null;
+  const n = Math.max(0, Math.min(99999999, Math.round(Number(totalXp))));
+  users[i].totalXp = Number.isFinite(n) ? n : 0;
+  users[i].xpUpdatedAt = new Date().toISOString();
+  writeAll(users);
+  return users[i];
+}
+
 function getPublicUsers() {
   return readAll().map((u) => ({
     id: u.id,
     displayName: u.displayName,
     annualKgCO2e: u.annualKgCO2e,
     updatedAt: u.updatedAt,
+    totalXp: u.totalXp != null ? u.totalXp : 0,
   }));
 }
 
@@ -88,5 +101,6 @@ module.exports = {
   createUser,
   verifyLogin,
   updateFootprint,
+  updateXp,
   getPublicUsers,
 };

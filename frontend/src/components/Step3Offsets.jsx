@@ -35,7 +35,7 @@ export function Step3Offsets({
 
   return (
     <motion.section
-      className="step-panel step-panel--3"
+      className="step-panel step-panel--4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
@@ -149,9 +149,9 @@ export function Step3Offsets({
           })}
         </div>
 
-        <div className="step-actions">
+        <div className="step-actions step-actions--wrap">
           <button type="button" className="btn-ghost" onClick={onBack}>
-            ← Back to score
+            ← Back to marketplace
           </button>
           <motion.button
             type="button"

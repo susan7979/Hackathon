@@ -141,3 +141,12 @@ export async function submitFootprintScore(annualKgCO2e) {
   });
   return parseResponse(res);
 }
+
+export async function submitGamifyXp(totalXp) {
+  const res = await fetch(`${base}/api/leaderboard/xp`, {
+    method: "POST",
+    headers: authJsonHeaders(),
+    body: JSON.stringify({ totalXp }),
+  });
+  return parseResponse(res);
+}

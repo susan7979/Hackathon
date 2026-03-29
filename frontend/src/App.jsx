@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { postDashboard } from "./api";
 import { useAuth } from "./context/AuthContext";
@@ -9,6 +9,7 @@ import { Step1Lifestyle } from "./components/Step1Lifestyle";
 import { Step2Score } from "./components/Step2Score";
 import { Step3Offsets } from "./components/Step3Offsets";
 import { Step4Toolkit } from "./components/Step4Toolkit";
+import { SustainableMarketplace } from "./components/SustainableMarketplace";
 import { useGamification } from "./hooks/useGamification";
 import "./App.css";
 
@@ -23,8 +24,9 @@ const defaultHabits = {
 const STEPS = [
   { n: 1, label: "Lifestyle" },
   { n: 2, label: "Carbon score" },
-  { n: 3, label: "Offsets" },
-  { n: 4, label: "Toolkit" },
+  { n: 3, label: "Sustainable Marketplace" },
+  { n: 4, label: "Offsets" },
+  { n: 5, label: "Toolkit" },
 ];
 
 export default function App() {
@@ -36,13 +38,11 @@ export default function App() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [selectedOffsetId, setSelectedOffsetId] = useState(null);
-  const gamify = useGamification(result?.footprint ?? null);
-
-  const breakdownMax = useMemo(() => {
-    const b = result?.footprint?.breakdownKg;
-    if (!b) return 1;
-    return Math.max(...Object.values(b), 1);
-  }, [result]);
+  const gamify = useGamification(result?.footprint ?? null, {
+    selectedOffsetId,
+    step,
+    userId: user?.id,
+  });
 
   useEffect(() => {
     if (!user) {
@@ -52,6 +52,15 @@ export default function App() {
       setError(null);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      document.title = "CUTthecarbon";
+      return;
+    }
+    document.title =
+      step === 3 ? "Sustainable marketplace — CUTthecarbon" : "CUTthecarbon";
+  }, [user, step]);
 
   useEffect(() => {
     if (!user || result?.footprint?.annualKgCO2e == null) return;
@@ -111,14 +120,14 @@ export default function App() {
             transition={{ duration: 0.5 }}
           >
             <div className="site-header__logo-wrap">
-              <img
-                className="site-header__logo"
-                src={IMAGES.brandLogo}
-                alt=""
-                width={56}
-                height={56}
-                decoding="async"
-              />
+            <img
+              className="site-header__logo"
+              src={IMAGES.brandLogo}
+              alt=""
+              width={80}
+              height={80}
+              decoding="async"
+            />
             </div>
             <div>
               <h1 className="site-header__title">
@@ -136,11 +145,13 @@ export default function App() {
               </p>
             </div>
           </motion.div>
-          <AuthBar authModal={authModal} setAuthModal={setAuthModal} />
+          <div className="site-header__trailing">
+            <AuthBar authModal={authModal} setAuthModal={setAuthModal} />
+          </div>
         </div>
 
         {user && (
-          <nav className="stepper" aria-label="Wizard progress">
+          <nav className="stepper stepper--five" aria-label="Wizard progress">
             {STEPS.map((s) => (
               <button
                 key={s.n}
@@ -151,6 +162,7 @@ export default function App() {
                   if (s.n === 2 && result) setStep(2);
                   if (s.n === 3 && result) setStep(3);
                   if (s.n === 4 && result) setStep(4);
+                  if (s.n === 5 && result) setStep(5);
                 }}
                 disabled={s.n > 1 && !result}
               >
@@ -184,34 +196,40 @@ export default function App() {
                 <Step2Score
                   key="s2"
                   footprint={result.footprint}
-                  breakdownMax={breakdownMax}
                   gamify={gamify}
                   onNext={() => setStep(3)}
                   onBack={() => setStep(1)}
-                  onOpenToolkit={() => setStep(4)}
+                  onOpenToolkit={() => setStep(5)}
                 />
               )}
               {step === 3 && result && (
+                <SustainableMarketplace
+                  key="s3-marketplace"
+                  onBack={() => setStep(2)}
+                  onNextOffsets={() => setStep(4)}
+                />
+              )}
+              {step === 4 && result && (
                 <Step3Offsets
-                  key="s3"
+                  key="s4-offsets"
                   offsetsRanked={result.offsetsRanked}
                   ai={result.ai}
                   aiEnabled={result.aiEnabled}
                   selectedId={selectedOffsetId}
                   onSelect={setSelectedOffsetId}
-                  onBack={() => setStep(2)}
-                  onNextToolkit={() => setStep(4)}
+                  onBack={() => setStep(3)}
+                  onNextToolkit={() => setStep(5)}
                   footprint={result.footprint}
                 />
               )}
-              {step === 4 && result?.footprint && (
+              {step === 5 && result?.footprint && (
                 <Step4Toolkit
-                  key="s4"
+                  key="s5-toolkit"
                   habits={habits}
                   footprint={result.footprint}
                   result={result}
                   gamify={gamify}
-                  onBack={() => setStep(3)}
+                  onBack={() => setStep(4)}
                 />
               )}
             </AnimatePresence>

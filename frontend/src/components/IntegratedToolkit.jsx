@@ -22,6 +22,10 @@ export function IntegratedToolkit({ habits, footprint, result, gamify }) {
     gamify.unlockBadge("hub_explorer");
   }, [gamify.unlockBadge]);
 
+  useEffect(() => {
+    gamify.recordHubTab(tab);
+  }, [tab, gamify.recordHubTab]);
+
   return (
     <motion.div
       id="carbon-toolkit"
