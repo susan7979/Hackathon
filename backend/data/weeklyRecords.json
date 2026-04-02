@@ -146,5 +146,227 @@
     "changeFromLastWeek": null,
     "createdAt": "2026-03-29T19:14:49.758Z",
     "updatedAt": "2026-03-29T19:14:49.758Z"
+  },
+  {
+    "id": "9db48b42-8edb-478d-84f7-410ef26af65a",
+    "userId": "d5702e73-720e-4089-8961-40702ee52450",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "car",
+      "commuteKmThisWeek": 120
+    },
+    "energyInput": {
+      "kwhThisWeek": 85
+    },
+    "foodInput": "average",
+    "shoppingInput": {
+      "level": "medium"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 0,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 132,
+    "weeklySustainabilityScore": 49,
+    "projectedYearlyFootprint": 6867,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 146.1,
+      "yourPercentOfUsAverage": 46.1,
+      "relativeToUs": "below_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T20:37:23.382Z",
+    "updatedAt": "2026-03-29T20:37:23.382Z"
+  },
+  {
+    "id": "a9d7e19e-0161-44ac-8fe6-a736384959aa",
+    "userId": "6c5b29b5-70ee-4380-b972-110f9f7d2191",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "car",
+      "commuteKmThisWeek": 120
+    },
+    "energyInput": {
+      "kwhThisWeek": 85
+    },
+    "foodInput": "average",
+    "shoppingInput": {
+      "level": "medium"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 0,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 132,
+    "weeklySustainabilityScore": 49,
+    "projectedYearlyFootprint": 6867,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 146.1,
+      "yourPercentOfUsAverage": 46.1,
+      "relativeToUs": "below_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T20:57:07.391Z",
+    "updatedAt": "2026-03-29T20:57:07.391Z"
+  },
+  {
+    "id": "986d39b3-dbc9-4fdc-adcc-0adadebf8b29",
+    "userId": "f71c70ca-a6e5-4070-b759-5fadcf4c3ef8",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "walk",
+      "commuteKmThisWeek": 110
+    },
+    "energyInput": {
+      "kwhThisWeek": 85
+    },
+    "foodInput": "vegetarian",
+    "shoppingInput": {
+      "level": "medium"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 0,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 91,
+    "weeklySustainabilityScore": 65,
+    "projectedYearlyFootprint": 4756,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 101.2,
+      "yourPercentOfUsAverage": 31.9,
+      "relativeToUs": "below_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T21:28:13.570Z",
+    "updatedAt": "2026-03-29T21:28:13.570Z"
+  },
+  {
+    "id": "da208d55-f59e-4732-a68d-a59f9a9a817e",
+    "userId": "f3984b1c-d5bd-4880-8b1e-7e22fa2ae36a",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "walk",
+      "commuteKmThisWeek": 110
+    },
+    "energyInput": {
+      "kwhThisWeek": 85
+    },
+    "foodInput": "vegetarian",
+    "shoppingInput": {
+      "level": "medium"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 0,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 91,
+    "weeklySustainabilityScore": 65,
+    "projectedYearlyFootprint": 4756,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 101.2,
+      "yourPercentOfUsAverage": 31.9,
+      "relativeToUs": "below_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T21:32:17.350Z",
+    "updatedAt": "2026-03-29T21:32:17.350Z"
+  },
+  {
+    "id": "b0e65235-5a78-4ce3-bbce-7e085d230a2d",
+    "userId": "fdf28055-461c-4b63-9e6b-a8b8cfd84cdf",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "car",
+      "commuteKmThisWeek": 60
+    },
+    "energyInput": {
+      "kwhThisWeek": 60
+    },
+    "foodInput": "meat_heavy",
+    "shoppingInput": {
+      "level": "medium"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 0,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 130,
+    "weeklySustainabilityScore": 50,
+    "projectedYearlyFootprint": 6766,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 143.9,
+      "yourPercentOfUsAverage": 45.4,
+      "relativeToUs": "below_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T21:42:47.518Z",
+    "updatedAt": "2026-03-29T21:42:47.518Z"
+  },
+  {
+    "id": "072f3461-b876-4d7c-849e-0d01c97c9688",
+    "userId": "69f1bead-9186-4c74-a77f-3801cf87a58d",
+    "weekStartDate": "2026-03-23",
+    "weekEndDate": "2026-03-29",
+    "weekKey": "2026-W13",
+    "transportInput": {
+      "mode": "car",
+      "commuteKmThisWeek": 60
+    },
+    "energyInput": {
+      "kwhThisWeek": 60
+    },
+    "foodInput": "meat_heavy",
+    "shoppingInput": {
+      "level": "medium"
+    },
+    "flightsInput": {
+      "shortHaulThisWeek": 0,
+      "longHaulThisWeek": 0
+    },
+    "weeklyCarbonFootprint": 130,
+    "weeklySustainabilityScore": 50,
+    "projectedYearlyFootprint": 6766,
+    "benchmarkComparison": {
+      "globalAverageAnnualKg": 4700,
+      "usAverageAnnualKg": 14900,
+      "globalAverageWeeklyKg": 90.38,
+      "usAverageWeeklyKg": 286.54,
+      "yourPercentOfGlobalAverage": 143.9,
+      "yourPercentOfUsAverage": 45.4,
+      "relativeToUs": "below_average"
+    },
+    "changeFromLastWeek": null,
+    "createdAt": "2026-03-29T21:48:29.194Z",
+    "updatedAt": "2026-03-29T21:48:29.194Z"
   }
 ]
